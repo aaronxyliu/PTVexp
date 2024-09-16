@@ -15,6 +15,7 @@ class ConnDatabase:
             db= database_name,
             autocommit = True
         )
+        self.database_name = database_name
         self.cursor = self.connection.cursor()
     
     def close(self):
@@ -31,7 +32,22 @@ class ConnDatabase:
 
         self.cursor.execute(f'''CREATE TABLE `{table_name}` ({statement});''')
         self.connection.commit()
-    
+
+    def show_tables(self) -> list:
+        # Return all the table names in the current database
+        # self.cursor.execute(f'''SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='{self.database_name}';''')
+        # res = self.cursor.fetchall()
+        # table_name_list = []
+        # for entry in res:
+        #     table_name_list.append(entry[0])
+        # return table_name_list
+        self.cursor.execute("Show tables;")
+ 
+        myresult = self.cursor.fetchall()
+ 
+        for x in myresult:
+            print(x)
+        
     def insert(self, table_name: str, fields: list, values: tuple):
         if len(fields) == 0:
             return
