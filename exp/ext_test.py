@@ -11,18 +11,13 @@ import sys
 
 WEBSITE_LIST_FILE = 'data/SEMrushRanks-us-2023-02-23.csv'
 
-opt = webdriver.ChromeOptions()
-opt.add_extension(f'bin/PTV.crx')
-service = webdriver.ChromeService(executable_path="./bin/chromedriver")
-driver = webdriver.Chrome(service=service, options=opt)
 
-
-def retrieveInfo(url):
+def retrieveInfo(driver, url):
     try:
         driver.get("http://" + url)
     except Exception as e:
         logger.warning(e)
-        return '[]', '-1'   # web loading failed
+        return '[]', -1, 'web loading failed'   # web loading failed
     
     try:
         WebDriverWait(driver, timeout=30).until(presence_of_element_located((By.XPATH, '//meta[@id="lib-detect-result" and @content]')))
@@ -31,14 +26,15 @@ def retrieveInfo(url):
 
         # Restart the driver
         driver.quit()
-        driver = webdriver.Chrome(service=service, options=opt)
+        driver.start_client()
+        # driver = webdriver.Chrome(service=service, options=opt)
 
-        return '[]', '-1'   # detection timeout
+        return '[]', -1, 'detection timeout'   # detection timeout
     
     result_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-result"]').get_attribute("content")
-    detect_time = driver.find_element(By.XPATH, '//*[@id="lib-detect-time"]').get_attribute("content")
+    detect_time = float(driver.find_element(By.XPATH, '//*[@id="lib-detect-time"]').get_attribute("content"))
 
-    return result_str, detect_time
+    return result_str, detect_time, ''
 
 def updateAll(table_name, start_no = 0):
     conn.create_if_not_exist(table_name, '''
@@ -47,21 +43,43 @@ def updateAll(table_name, start_no = 0):
         `url` varchar(500) DEFAULT NULL,
         `result` json DEFAULT NULL,
         `time` float DEFAULT NULL,
+        `dscp` varchar(500) DEFAULT NULL,
         PRIMARY KEY (`id`)
         ''')
     
     df = pd.read_csv(WEBSITE_LIST_FILE)
-    for i in range(df.shape[0]):
-        if i < start_no:
-            continue
-        rank = df.loc[i, 'Rank']
-        url = df.loc[i, 'Domain']
-        result_str, detect_time = retrieveInfo(url)
-        conn.insert(table_name\
-            , ['rank', 'url', 'result', 'time']\
-            , (rank, url, result_str, detect_time))
-    
-        logger.info(f'{url} finished. ({i} / {df.shape[0]})')
+    website_num = df.shape[0]
+
+    i = 0
+    while True:
+        opt = webdriver.ChromeOptions()
+        opt.add_extension(f'bin/PTV.crx')
+        service = webdriver.ChromeService(executable_path="./bin/chromedriver")
+        driver = webdriver.Chrome(service=service, options=opt)
+
+        while True:
+            if i < start_no-1:
+                i += 1
+                continue
+            if i >= website_num:
+                break
+            rank = df.loc[i, 'Rank']
+            url = df.loc[i, 'Domain']
+            result_str, detect_time, exception = retrieveInfo(driver, url)
+            conn.update_otherwise_insert(table_name\
+                , ['rank', 'result', 'time', 'dscp']\
+                , (rank, result_str, detect_time, exception)\
+                , 'url', url)
+        
+            i += 1
+            logger.info(f'{url} finished. ({i} / {website_num})')
+            if detect_time < 0:
+                # Restart the driver if error appears
+                break
+
+        driver.quit()
+        if i >= website_num:
+            break
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
@@ -72,7 +90,7 @@ if __name__ == '__main__':
         updateAll(sys.argv[1], int(sys.argv[2]))
     else:
         updateAll()
-    driver.quit()
+    
     conn.close()
 
 

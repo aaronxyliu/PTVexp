@@ -6,7 +6,7 @@ import json
 
 
 def analyze(table_name):
-    res = conn.selectAll(table_name, ['result'])
+    res = conn.selectAll(table_name, ['result', 'time'])
 
     lib_dict = {}
     lib_no_version_dict = {}        # Libraries without version information
@@ -14,6 +14,10 @@ def analyze(table_name):
     lib_with_version_cnt = 0
 
     for entry in res:
+        time = entry[1]
+        if time < 0:
+                    # Error
+                    continue
         libs = json.loads(entry[0])
         if libs:
             for lib in libs:
@@ -32,7 +36,7 @@ def analyze(table_name):
                     else:
                         lib_no_version_dict[libname] += 1
 
-    #Sort by frequency from large to small
+    # Sort by frequency from large to small
     sorted_dict = dict(sorted(lib_dict.items(), key=lambda x:x[1], reverse=True))
     sorted_dict2 = dict(sorted(lib_no_version_dict.items(), key=lambda x:x[1], reverse=True))
     logger.info(f'Library number: {len(sorted_dict)}')
@@ -48,7 +52,7 @@ def analyze(table_name):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        logger.info('Need provide the output table name.')
+        logger.info('Need provide the detection result table name.')
     elif len(sys.argv) == 2:
         analyze(sys.argv[1])
     conn.close()

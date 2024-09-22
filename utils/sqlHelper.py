@@ -35,18 +35,12 @@ class ConnDatabase:
 
     def show_tables(self) -> list:
         # Return all the table names in the current database
-        # self.cursor.execute(f'''SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='{self.database_name}';''')
-        # res = self.cursor.fetchall()
-        # table_name_list = []
-        # for entry in res:
-        #     table_name_list.append(entry[0])
-        # return table_name_list
+        table_name_list = []
         self.cursor.execute("Show tables;")
- 
-        myresult = self.cursor.fetchall()
- 
-        for x in myresult:
-            print(x)
+        res = self.cursor.fetchall()
+        for entry in res:
+            table_name_list.append(entry[0])
+        return table_name_list
         
     def insert(self, table_name: str, fields: list, values: tuple):
         if len(fields) == 0:
@@ -60,8 +54,28 @@ class ConnDatabase:
         sql = f"INSERT INTO `{table_name}` (`{fields_str}`) VALUES ({placeholder_str});"
         self.cursor.execute(sql, values)
         self.connection.commit()
-        
-
+    
+    def update(self, table_name: str, fields: list, values: tuple, condition:str):
+        if len(fields) == 0:
+            return
+        if len(fields) != len(values):
+            print('[Warning] The number of fields and values are not equal.')
+            return
+        fields = map(lambda s: f"`{s}`=%s", fields)
+        fields_str = ", ".join(fields)
+        sql = f"UPDATE `{table_name}` SET {fields_str} WHERE {condition};"
+        self.cursor.execute(sql, values)
+        self.connection.commit()
+    
+    def update_otherwise_insert(self, table_name: str, fields: list, values: tuple, condition_field:str, condition_value:any):
+        condition = f"`{condition_field}`='{condition_value}'"
+        self.cursor.execute(f'''SELECT COUNT(*) FROM {table_name} WHERE {condition};''')
+        satisfied_no = self.cursor.fetchone()
+        if satisfied_no == 0: 
+            self.insert(table_name, fields.append(condition_field), values + (condition_value,))
+        else:
+            self.update(table_name, fields, values, condition)
+ 
     def selectAll(self, table_name: str, fields: list) -> list:
         if len(fields) == 0:
             return []
