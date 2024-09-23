@@ -4,10 +4,12 @@ conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
 import sys
 import json
 
+URL_BLACKLIST = ['menards.com']
 
 def analyze(table_name):
-    res = conn.selectAll(table_name, ['result', 'time'])
+    res = conn.selectAll(table_name, ['result', 'time', 'url'])
 
+    web_cnt = 0
     lib_dict = {}
     lib_no_version_dict = {}        # Libraries without version information
     lib_cnt = 0
@@ -16,8 +18,12 @@ def analyze(table_name):
     for entry in res:
         time = entry[1]
         if time < 0:
-                    # Error
-                    continue
+            # Error
+            continue
+        url = entry[2]
+        if url in URL_BLACKLIST:
+            continue
+        web_cnt += 1
         libs = json.loads(entry[0])
         if libs:
             for lib in libs:
@@ -39,6 +45,7 @@ def analyze(table_name):
     # Sort by frequency from large to small
     sorted_dict = dict(sorted(lib_dict.items(), key=lambda x:x[1], reverse=True))
     sorted_dict2 = dict(sorted(lib_no_version_dict.items(), key=lambda x:x[1], reverse=True))
+    logger.info(f'Website number: {web_cnt}')
     logger.info(f'Library number: {len(sorted_dict)}')
     logger.info(f'Library occurrence: {lib_cnt}')
     logger.info(f'Library occurrence with version number: {lib_with_version_cnt} ({round(lib_with_version_cnt*100/lib_cnt)}%)')
