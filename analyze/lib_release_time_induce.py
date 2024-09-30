@@ -87,7 +87,7 @@ def analyze(table_name):
 
                     if not match_flag:
                         # This version is older than all
-                        if SV(version) == SV(previous_entry[0]):
+                        if SV(version) < SV(previous_entry[0]):
                             case4 += 1
                         else:
                             no_match_dist.add(libname)

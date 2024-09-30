@@ -1,9 +1,10 @@
-import pandas as pd
-import math
 import matplotlib.pyplot as plt
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
+Dist = ultraimport('__dir__/../utils/stat.py').Distribution
+Dist2 = ultraimport('__dir__/../utils/stat.py').Distribution2
+
 import sys
 import json
 
@@ -16,8 +17,12 @@ def analyze(table_name, web_num_limit=1000000):
     web_cnt = 0
     lib_occurrence_cnt = 0
     lib_occur_with_date_cnt = 0
-    date_dict = {}
-    y2015dict = {}
+    lib_occur_with_version = 0
+    y2015dist = Dist('Libraries Released in 2015')
+
+    date_dist = Dist('Release Date Distribution of Detected Libraries')
+
+    avg_release_time_dist = Dist2('Average Release Time of Each Library')
 
     for entry in res:
         time = entry[1]
@@ -37,44 +42,32 @@ def analyze(table_name, web_num_limit=1000000):
                 libname = lib['libname']
                 lib_occurrence_cnt += 1
                 date = lib['date']
+                version = lib['version']
+                if version and len(version) > 0:
+                    lib_occur_with_version += 1
                 if date and len(date) >= 4:
+                    avg_release_time_dist.add(libname, date)
+
                     lib_occur_with_date_cnt += 1
                     year = date[:4]
                     if year == '2015':
-                        if libname not in y2015dict:
-                            y2015dict[libname] = 1
-                        else:
-                            y2015dict[libname] += 1
-                    if year not in date_dict:
-                        date_dict[year] = 1
-                    else:
-                        date_dict[year] += 1
+                        y2015dist.add(libname)
+                    date_dist.add(year)
 
-    # Sort by year
-    date_dict = dict(sorted(date_dict.items(), key=lambda x:x[0], reverse=False))
-    year_list = []
-    range_list = []
-    for pair in date_dict.items():
-        year_list.append(pair[0])
-        range_list.append(pair[1])
-    print(year_list)
-    print(range_list)
     logger.info(f'Website number: {web_cnt}')
     logger.info(f'Library occurrence: {lib_occurrence_cnt}')
+    logger.info(f'Library occurrence with version: {lib_occur_with_version}')
     logger.info(f'Library occurrence with date: {lib_occur_with_date_cnt}')
-    logger.info(y2015dict)
+    logger.info(y2015dist)
+    logger.info(avg_release_time_dist)
+    new_dist = Dist('Library Average Release Time Distribution')
+    for pair in avg_release_time_dist.average_dict.items():
+        new_dist.add(pair[1][:4])
+    new_dist.showplot()
+        
 
-    plt.bar(x=range(len(year_list)), height=range_list, width=0.5,
-            color="#F5CCCC",
-            edgecolor="#C66667")
 
-    label_list = year_list
-    plt.xticks(range(len(year_list)), label_list)
-    plt.xlabel("Size")
-    plt.ylabel("Number")
-
-    plt.rcParams['figure.figsize'] = [6.2, 3]
-    plt.show()
+    # date_dist.showplot()
 
 if __name__ == '__main__':
     # Usage: python3 analyze/lib_date_dist.py result03 1000       Analyze the table 'table03' and take the front 1000 websites

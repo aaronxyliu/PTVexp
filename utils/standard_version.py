@@ -3,6 +3,9 @@ import re
 class StandardVersion:
     def __init__(self, version_str: str):
         version_str = str(version_str)
+
+        self.raw_str = self.major_version = self.minor_version = self.patch_version = self.suffix = None
+
         self.raw_str = version_str
         self.major_version = self.minor_version = self.patch_version = self.suffix = None
         res1 = re.search('[0-9]+', version_str)
@@ -25,15 +28,15 @@ class StandardVersion:
         # Equal overloading
         if self.raw_str and x.raw_str and self.raw_str == x.raw_str:
             return True
-        if not self.major_version or not x.major_version:
+        if self.major_version == None or self.major_version == None:
             return False
         if self.major_version != x.major_version:
             return False
-        if not self.minor_version or not x.minor_version:
+        if self.minor_version  == None or x.minor_version  == None:
             return True
         if self.minor_version != x.minor_version:
             return False
-        if not self.patch_version or not x.patch_version:
+        if self.patch_version == None or x.patch_version == None:
             return True
         if self.patch_version != x.patch_version:
             return False
@@ -45,21 +48,21 @@ class StandardVersion:
 
     def __lt__(self, x: object) -> bool:
         # Less than overloading
-        if not self.major_version or not x.major_version:
+        if self.major_version == None or x.major_version == None:
             return False
         if self.major_version < x.major_version:
             return True
         elif self.major_version > x.major_version:
             return False
         
-        if not self.minor_version or not x.minor_version:
+        if self.minor_version == None or x.minor_version == None:
             return False
         if self.minor_version < x.minor_version:
             return True
         elif self.minor_version > x.minor_version:
             return False
         
-        if not self.patch_version or not x.patch_version:
+        if self.patch_version == None or x.patch_version == None:
             return False
         if self.patch_version < x.patch_version:
             return True
@@ -74,9 +77,10 @@ Suffix: {self.suffix}
         '''
         return print_content
 
-# a = StandardVersion('3.7.999')
-# b = StandardVersion('2.3.46')
-
+# a = StandardVersion('v0.2.3')
+# b = StandardVersion('0.2.3')
+# print(a)
+# print(b)
 # print(a<b)
 # print(b<a)
 # print(a==b)

@@ -15,6 +15,8 @@ def analyze(table_name):
     lib_cnt = 0
     lib_with_version_cnt = 0
 
+    
+
     underscore_versions = []
 
     for entry in res:
@@ -32,7 +34,7 @@ def analyze(table_name):
                 libname = lib['libname']
                 version = lib['version']
 
-                if libname == 'google_maps':
+                if libname == 'medium-editor':
                     underscore_versions .append(version)
 
 
