@@ -15,6 +15,8 @@ def analyze(table_name):
     lib_cnt = 0
     lib_with_version_cnt = 0
 
+    underscore_versions = []
+
     for entry in res:
         time = entry[1]
         if time < 0:
@@ -29,6 +31,13 @@ def analyze(table_name):
             for lib in libs:
                 libname = lib['libname']
                 version = lib['version']
+
+                if libname == 'google_maps':
+                    underscore_versions .append(version)
+
+
+
+                
                 if libname not in lib_dict:
                     lib_dict[libname] = 1
                 else:
@@ -56,10 +65,15 @@ def analyze(table_name):
     logger.info("\n ==== No Version Information Library Frequency Ranking ====")
     logger.info(sorted_dict2)
 
+    logger.info('== underscore ==')
+    logger.info(underscore_versions)
+
 
 if __name__ == '__main__':
+    # Usage: python3 analyze/lib_dist.py result03
     if len(sys.argv) == 1:
         logger.info('Need provide the detection result table name.')
     elif len(sys.argv) == 2:
         analyze(sys.argv[1])
     conn.close()
+    logger.close()

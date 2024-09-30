@@ -5,4 +5,8 @@ import sys
 import json
 
 tables = conn.show_tables()
-logger.info(tables)
+
+for table_name in tables:
+    cnt = conn.entry_count(table_name)
+    if cnt == 0:
+        conn.drop(table_name)
