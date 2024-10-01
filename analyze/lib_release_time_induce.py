@@ -22,12 +22,11 @@ def analyze(table_name):
     res = conn.selectAll(table_name, ['result', 'time', 'id'])
     lib_tablename_list = conn2.show_tables()
 
-    no_match_dist = Dist('No Release Time Match Libraries')
+    no_match_dist = Dist()
+    no_release_dist = Dist()
 
     lib_cnt = 0
     version_cnt = 0
-
-    no_release_dist = Dist("NO VERSION INFO IN DATABASE 'RELEASES'")
 
     case1 = 0
     case2 = 0
@@ -107,8 +106,8 @@ def analyze(table_name):
     logger.info(f'# Oldest: {case4}')
     logger.info(f'# Versions no release date: {no_match_dist.size()}')
 
-    logger.info(no_release_dist)
-    logger.info(no_match_dist)
+    logger.info(no_release_dist.freqDict('No Release Time Match Libraries'))
+    logger.info(no_match_dist.freqDict("NO VERSION INFO IN DATABASE 'RELEASES'"))
 
     
 

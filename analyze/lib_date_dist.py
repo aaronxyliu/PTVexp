@@ -3,7 +3,6 @@ import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
 Dist = ultraimport('__dir__/../utils/stat.py').Distribution
-Dist2 = ultraimport('__dir__/../utils/stat.py').Distribution2
 
 import sys
 import json
@@ -18,11 +17,9 @@ def analyze(table_name, web_num_limit=1000000):
     lib_occurrence_cnt = 0
     lib_occur_with_date_cnt = 0
     lib_occur_with_version = 0
-    y2015dist = Dist('Libraries Released in 2015')
-
-    date_dist = Dist('Release Date Distribution of Detected Libraries')
-
-    avg_release_time_dist = Dist2('Average Release Time of Each Library')
+    y2015dist = Dist()
+    date_dist = Dist()
+    avg_release_time_dist = Dist()
 
     for entry in res:
         time = entry[1]
@@ -58,8 +55,8 @@ def analyze(table_name, web_num_limit=1000000):
     logger.info(f'Library occurrence: {lib_occurrence_cnt}')
     logger.info(f'Library occurrence with version: {lib_occur_with_version}')
     logger.info(f'Library occurrence with date: {lib_occur_with_date_cnt}')
-    logger.info(y2015dist)
-    logger.info(avg_release_time_dist)
+    logger.info(y2015dist.freqDict('Libraries Released in 2015'))
+    logger.info(avg_release_time_dist.avgDateDict('Average Release Time of Each Library'))
     new_dist = Dist('Library Average Release Time Distribution')
     for pair in avg_release_time_dist.average_dict.items():
         new_dist.add(pair[1][:4])
