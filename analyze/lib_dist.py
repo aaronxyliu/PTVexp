@@ -1,10 +1,12 @@
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
+Dist = ultraimport('__dir__/../utils/stat.py').Distribution
+
 import sys
 import json
 
-URL_BLACKLIST = ['menards.com']
+URL_BLACKLIST = []
 
 def analyze(table_name):
     res = conn.selectAll(table_name, ['result', 'time', 'url'])
@@ -14,6 +16,8 @@ def analyze(table_name):
     lib_no_version_dict = {}        # Libraries without version information
     lib_cnt = 0
     lib_with_version_cnt = 0
+
+    lib_dist = Dist()
 
     
 
@@ -34,8 +38,11 @@ def analyze(table_name):
                 libname = lib['libname']
                 version = lib['version']
 
-                if libname == 'medium-editor':
+                lib_dist.add(url, libname)
+
+                if libname == 'jquery-tools':
                     underscore_versions .append(version)
+                    
 
 
 
@@ -69,6 +76,11 @@ def analyze(table_name):
 
     logger.info('== underscore ==')
     logger.info(underscore_versions)
+
+    logger.info('=====')
+    logger.info(len(lib_dist.dict['menards.com']))
+
+    lib_dist.showplot('Websites Containing Many Libraries', xlabel='url', ylabel='# loaded libraries', sortByY=True, head=15)
 
 
 if __name__ == '__main__':

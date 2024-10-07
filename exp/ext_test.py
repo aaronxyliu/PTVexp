@@ -8,11 +8,18 @@ logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
 import pandas as pd
 import sys
+import json
+import multiprocessing
+import time
+
 
 WEBSITE_LIST_FILE = 'data/SEMrushRanks-us-2023-02-23.csv'
+df = pd.read_csv(WEBSITE_LIST_FILE)
+website_num = df.shape[0]
 
 
 def retrieveInfo(driver, url):
+    logger.info(f"Retrieving {url}")
     try:
         driver.get("http://" + url)
     except Exception as e:
@@ -36,7 +43,21 @@ def retrieveInfo(driver, url):
 
     return result_str, detect_time, ''
 
-def updateAll(table_name, start_no = 0):
+def ExistUnknown(table_name: str, url: str) -> bool:
+    res = conn.fetchone(f"SELECT `result` FROM {table_name} WHERE `url`='{url}'")
+    if not res:
+        return True
+    libs = json.loads(res[0])
+    if not libs or len(libs) == 0:
+        return True
+    for lib in libs:
+        version = lib['version']
+        if not version and len(version) == 0:
+            return True
+        
+    return False
+
+def updateAll(table_name, start_no = 0, channel = None):
     conn.create_if_not_exist(table_name, '''
         `id` int unsigned NOT NULL AUTO_INCREMENT,
         `rank` int DEFAULT NULL,
@@ -46,9 +67,6 @@ def updateAll(table_name, start_no = 0):
         `dscp` varchar(500) DEFAULT NULL,
         PRIMARY KEY (`id`)
         ''')
-    
-    df = pd.read_csv(WEBSITE_LIST_FILE)
-    website_num = df.shape[0]
 
     i = 0
     while True:
@@ -58,21 +76,31 @@ def updateAll(table_name, start_no = 0):
         driver = webdriver.Chrome(service=service, options=opt)
 
         while True:
-            if i < start_no-1:
+            if i < start_no - 1:
                 i += 1
                 continue
-            if i >= website_num:
+            if i >= website_num - 1:
                 break
+            i += 1
+
             rank = df.loc[i, 'Rank']
             url = df.loc[i, 'Domain']
+
+            if not ExistUnknown(table_name, url):
+                continue
+
             result_str, detect_time, exception = retrieveInfo(driver, url)
             conn.update_otherwise_insert(table_name\
                 , ['rank', 'result', 'time', 'dscp']\
                 , (rank, result_str, detect_time, exception)\
                 , 'url', url)
         
-            i += 1
+            
             logger.info(f'{url} finished. ({i} / {website_num})')
+            if channel:
+                channel['heartbeat_time'] = time.time()
+                channel['start_no'] = i
+
             if detect_time < 0:
                 # Restart the driver if error appears
                 break
@@ -81,7 +109,8 @@ def updateAll(table_name, start_no = 0):
         if i >= website_num:
             break
 
-if __name__ == '__main__':
+
+def timeout_wrapper():
     if len(sys.argv) == 1:
         logger.info('Need provide the output table name.')
     elif len(sys.argv) == 2:
@@ -90,7 +119,46 @@ if __name__ == '__main__':
         updateAll(sys.argv[1], int(sys.argv[2]))
     else:
         updateAll()
-    
+
+if __name__ == '__main__':
+    # Usage: python3 exp/ext_test.py result03 0    "result03" is the table name
+    if len(sys.argv) != 3:
+        logger.info('Need provide the output table name and the start number.')
+
+    channel = multiprocessing.Manager().dict()  # Communication Channel
+    channel['heartbeat_time'] = time.time()
+    channel['start_no'] = int(sys.argv[2])
+    p = multiprocessing.Process(target=updateAll, args=(sys.argv[1], int(sys.argv[2]), channel))
+    p.start()
+    old_start_no = -1
+
+    while True:
+        time.sleep(10)  # Check the heartbeat every 10 seconds
+        if not p.is_alive():
+            break
+        time_delta = time.time() - channel['heartbeat_time']
+        print(time_delta)
+
+        if time_delta > 45:
+            # The heartbeat interval is larger than 45 seconds
+            logger.info(f"Process timeouts. Restart the process.")
+            # print(f"old no: {old_start_no}")
+            # print(f"current no: {channel['start_no']}")
+            if channel['start_no'] == old_start_no:
+                # Prevent to restart the same page twice
+                print("Page failed twice. Skip this page.")
+                channel['start_no'] += 1
+            p.terminate()
+            channel['heartbeat_time'] = time.time()
+            
+            p = multiprocessing.Process(target=updateAll, args=(sys.argv[1], channel['start_no'], channel))
+            old_start_no = channel['start_no']
+            p.start()
+        if channel['start_no'] >= website_num:
+            break
+
+    if p.is_alive():
+        p.terminate()
     conn.close()
 
 

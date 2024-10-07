@@ -20,6 +20,9 @@ def analyze(table_name, web_num_limit=1000000):
     y2015dist = Dist()
     date_dist = Dist()
     avg_release_time_dist = Dist()
+    no_version_libs = Dist()
+    lib_dist = Dist()
+    lib_date_dist = Dist()
 
     for entry in res:
         time = entry[1]
@@ -40,9 +43,16 @@ def analyze(table_name, web_num_limit=1000000):
                 lib_occurrence_cnt += 1
                 date = lib['date']
                 version = lib['version']
+
+                lib_dist.add(libname)
+
                 if version and len(version) > 0:
                     lib_occur_with_version += 1
+                else:
+                    no_version_libs.add(libname, url)
+
                 if date and len(date) >= 4:
+                    lib_date_dist.add(date[:4], libname)
                     avg_release_time_dist.add(libname, date)
 
                     lib_occur_with_date_cnt += 1
@@ -56,11 +66,15 @@ def analyze(table_name, web_num_limit=1000000):
     logger.info(f'Library occurrence with version: {lib_occur_with_version}')
     logger.info(f'Library occurrence with date: {lib_occur_with_date_cnt}')
     logger.info(y2015dist.freqDict('Libraries Released in 2015'))
+    logger.info(no_version_libs.freqDict('Libraries with no version'))
     logger.info(avg_release_time_dist.avgDateDict('Average Release Time of Each Library'))
-    new_dist = Dist('Library Average Release Time Distribution')
-    for pair in avg_release_time_dist.average_dict.items():
-        new_dist.add(pair[1][:4])
-    new_dist.showplot()
+    # lib_dist.showplot('Most Frequently Used Libraries', xlabel='library', ylabel='# occurrences', sortByFreq=True, head=20)
+    lib_date_dist.showplot('Library Occurrence Release Time Distribution', xlabel='year', ylabel='# library occurrences')
+    # date_dist.showplot('Library Release Year Distribution on Top 10k Websites', xlabel='year', ylabel='# library occurrences')
+    # new_dist = Dist()
+    # for pair in avg_release_time_dist.avgDateDict().items():
+    #     new_dist.add(pair[1][:4])
+    # new_dist.showplot('Library Average Release Time Distribution', xlabel='year', ylabel='# libraries')
         
 
 
