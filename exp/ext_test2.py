@@ -5,17 +5,12 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
-conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
+conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection2')
 import pandas as pd
 import sys
 import json
 import multiprocessing
 import time
-
-
-WEBSITE_LIST_FILE = 'data/SEMrushRanks-us-2023-02-23.csv'
-df = pd.read_csv(WEBSITE_LIST_FILE)
-website_num = df.shape[0]
 
 
 def retrieveInfo(driver, url):
@@ -57,7 +52,7 @@ def ExistUnknown(table_name: str, url: str) -> bool:
         
     return False
 
-def updateAll(table_name, start_no = 0, channel = None):
+def updateAll(df, table_name, start_no = 0, channel = None):
     conn.create_if_not_exist(table_name, '''
         `id` int unsigned NOT NULL AUTO_INCREMENT,
         `rank` int DEFAULT NULL,
@@ -67,7 +62,7 @@ def updateAll(table_name, start_no = 0, channel = None):
         `dscp` varchar(500) DEFAULT NULL,
         PRIMARY KEY (`id`)
         ''')
-
+    website_num = df.shape[0]
     i = 0
     while True:
         opt = webdriver.ChromeOptions()
@@ -76,18 +71,18 @@ def updateAll(table_name, start_no = 0, channel = None):
         driver = webdriver.Chrome(service=service, options=opt)
 
         while True:
-            if i < start_no - 1:
+            if i < start_no:
                 i += 1
                 continue
-            if i >= website_num - 1:
+            if i >= website_num:
                 break
-            i += 1
+            
+            rank = df.loc[i, 'rank']
+            url = df.loc[i, 'url']
+            
 
-            rank = df.loc[i, 'Rank']
-            url = df.loc[i, 'Domain']
-
-            if not ExistUnknown(table_name, url):
-                continue
+            # if not ExistUnknown(table_name, url):
+            #     continue
 
             result_str, detect_time, exception = retrieveInfo(driver, url)
             conn.update_otherwise_insert(table_name\
@@ -104,6 +99,8 @@ def updateAll(table_name, start_no = 0, channel = None):
             if detect_time < 0:
                 # Restart the driver if error appears
                 break
+
+            i += 1
 
         driver.quit()
         if i >= website_num:
@@ -128,7 +125,13 @@ if __name__ == '__main__':
     channel = multiprocessing.Manager().dict()  # Communication Channel
     channel['heartbeat_time'] = time.time()
     channel['start_no'] = int(sys.argv[2])
-    p = multiprocessing.Process(target=updateAll, args=(sys.argv[1], int(sys.argv[2]), channel))
+
+    category = sys.argv[1]
+    WEBSITE_LIST_FILE = f'data/CategoryRank/{category}.csv'
+    df = pd.read_csv(WEBSITE_LIST_FILE)
+    website_num = df.shape[0]
+
+    p = multiprocessing.Process(target=updateAll, args=(df, category, int(sys.argv[2]), channel))
     p.start()
     old_start_no = -1
 
@@ -151,7 +154,7 @@ if __name__ == '__main__':
             p.terminate()
             channel['heartbeat_time'] = time.time()
             
-            p = multiprocessing.Process(target=updateAll, args=(sys.argv[1], channel['start_no'], channel))
+            p = multiprocessing.Process(target=updateAll, args=(df, category, channel['start_no'], channel))
             old_start_no = channel['start_no']
             p.start()
         if channel['start_no'] >= website_num:

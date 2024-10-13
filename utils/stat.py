@@ -100,3 +100,38 @@ class Distribution:
         if title:
             plt.title(title)
         plt.show()
+
+    def showsbplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByY: bool = False, head: int = -1):
+        # stacked bar plot
+        # "processFunc' must be a function that receives a list and returns a dict
+
+        item_len = len(self.dict)
+        if item_len == 0:
+            return
+        
+        fig, ax = plt.subplots()
+        bottom = np.zeros(item_len)
+        width = 0.4
+
+        x_list = []
+        
+        stack_dicts = []
+        for pair in self.dict.items():
+            x_list.append(pair[0])
+            stack_dicts.append(processFunc(pair[1]))
+
+        for k, _ in stack_dicts[0]:
+            weights = np.array()
+            for stack_dict in stack_dicts:
+                weights = np.append(weights, stack_dict[k])
+            ax.bar(x_list, weights, width, label=str(k), bottom=bottom) 
+            bottom += weights
+
+        
+        ax.set_title("Number of penguins with above average body mass")
+        ax.legend(loc="upper right")
+
+        plt.show()
+                    
+
+            
