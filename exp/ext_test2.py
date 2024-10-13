@@ -96,11 +96,13 @@ def updateAll(df, table_name, start_no = 0, channel = None):
                 channel['heartbeat_time'] = time.time()
                 channel['start_no'] = i
 
+            i += 1
+            
             if detect_time < 0:
                 # Restart the driver if error appears
                 break
 
-            i += 1
+            
 
         driver.quit()
         if i >= website_num:
