@@ -1,0 +1,87 @@
+14.Oct 2024 11:51:36 [INFO] === CATEGORY: adult ===
+14.Oct 2024 11:51:36 [INFO] # Libs: 659
+14.Oct 2024 11:51:36 [INFO] # Versions: 1466
+14.Oct 2024 11:51:36 [INFO] # Websites: 281
+14.Oct 2024 11:51:36 [INFO] # Libs per website: 2.3
+14.Oct 2024 11:51:37 [INFO] === CATEGORY: arts_and_entertainment ===
+14.Oct 2024 11:51:37 [INFO] # Libs: 688
+14.Oct 2024 11:51:37 [INFO] # Versions: 1293
+14.Oct 2024 11:51:37 [INFO] # Websites: 271
+14.Oct 2024 11:51:37 [INFO] # Libs per website: 2.5
+14.Oct 2024 11:51:38 [INFO] === CATEGORY: business_and_consumer_services ===
+14.Oct 2024 11:51:38 [INFO] # Libs: 959
+14.Oct 2024 11:51:38 [INFO] # Versions: 1880
+14.Oct 2024 11:51:38 [INFO] # Websites: 257
+14.Oct 2024 11:51:38 [INFO] # Libs per website: 3.7
+14.Oct 2024 11:51:40 [INFO] === CATEGORY: community_and_society ===
+14.Oct 2024 11:51:40 [INFO] # Libs: 830
+14.Oct 2024 11:51:40 [INFO] # Versions: 1762
+14.Oct 2024 11:51:40 [INFO] # Websites: 265
+14.Oct 2024 11:51:40 [INFO] # Libs per website: 3.1
+14.Oct 2024 11:51:41 [INFO] === CATEGORY: computers_electronics_and_technology ===
+14.Oct 2024 11:51:41 [INFO] # Libs: 700
+14.Oct 2024 11:51:41 [INFO] # Versions: 1228
+14.Oct 2024 11:51:41 [INFO] # Websites: 281
+14.Oct 2024 11:51:41 [INFO] # Libs per website: 2.5
+14.Oct 2024 11:51:44 [INFO] === CATEGORY: ecommerce_and_shopping ===
+14.Oct 2024 11:51:44 [INFO] # Libs: 1386
+14.Oct 2024 11:51:44 [INFO] # Versions: 2408
+14.Oct 2024 11:51:44 [INFO] # Websites: 272
+14.Oct 2024 11:51:44 [INFO] # Libs per website: 5.1
+14.Oct 2024 11:51:46 [INFO] === CATEGORY: finance ===
+14.Oct 2024 11:51:46 [INFO] # Libs: 1036
+14.Oct 2024 11:51:46 [INFO] # Versions: 1800
+14.Oct 2024 11:51:46 [INFO] # Websites: 265
+14.Oct 2024 11:51:46 [INFO] # Libs per website: 3.9
+14.Oct 2024 11:51:48 [INFO] === CATEGORY: food_and_drink ===
+14.Oct 2024 11:51:48 [INFO] # Libs: 916
+14.Oct 2024 11:51:48 [INFO] # Versions: 1502
+14.Oct 2024 11:51:48 [INFO] # Websites: 272
+14.Oct 2024 11:51:48 [INFO] # Libs per website: 3.4
+14.Oct 2024 11:51:49 [INFO] === CATEGORY: gambling ===
+14.Oct 2024 11:51:49 [INFO] # Libs: 635
+14.Oct 2024 11:51:49 [INFO] # Versions: 1192
+14.Oct 2024 11:51:49 [INFO] # Websites: 268
+14.Oct 2024 11:51:49 [INFO] # Libs per website: 2.4
+14.Oct 2024 11:51:50 [INFO] === CATEGORY: games ===
+14.Oct 2024 11:51:50 [INFO] # Libs: 940
+14.Oct 2024 11:51:50 [INFO] # Versions: 2300
+14.Oct 2024 11:51:50 [INFO] # Websites: 285
+14.Oct 2024 11:51:50 [INFO] # Libs per website: 3.3
+14.Oct 2024 11:51:52 [INFO] === CATEGORY: health ===
+14.Oct 2024 11:51:52 [INFO] # Libs: 1026
+14.Oct 2024 11:51:52 [INFO] # Versions: 2160
+14.Oct 2024 11:51:52 [INFO] # Websites: 264
+14.Oct 2024 11:51:52 [INFO] # Libs per website: 3.9
+14.Oct 2024 11:51:54 [INFO] === CATEGORY: heavy_industry_and_engineering ===
+14.Oct 2024 11:51:54 [INFO] # Libs: 1112
+14.Oct 2024 11:51:54 [INFO] # Versions: 1980
+14.Oct 2024 11:51:54 [INFO] # Websites: 236
+14.Oct 2024 11:51:54 [INFO] # Libs per website: 4.7
+14.Oct 2024 11:51:55 [INFO] === CATEGORY: hobbies_and_leisure ===
+14.Oct 2024 11:51:55 [INFO] # Libs: 1022
+14.Oct 2024 11:51:55 [INFO] # Versions: 2304
+14.Oct 2024 11:51:55 [INFO] # Websites: 278
+14.Oct 2024 11:51:55 [INFO] # Libs per website: 3.7
+14.Oct 2024 11:51:57 [INFO] === CATEGORY: home_and_garden ===
+14.Oct 2024 11:51:57 [INFO] # Libs: 1204
+14.Oct 2024 11:51:57 [INFO] # Versions: 2365
+14.Oct 2024 11:51:57 [INFO] # Websites: 285
+14.Oct 2024 11:51:57 [INFO] # Libs per website: 4.2
+14.Oct 2024 11:51:59 [INFO] === CATEGORY: jobs_and_career ===
+14.Oct 2024 11:51:59 [INFO] # Libs: 915
+14.Oct 2024 11:51:59 [INFO] # Versions: 1694
+14.Oct 2024 11:51:59 [INFO] # Websites: 280
+14.Oct 2024 11:51:59 [INFO] # Libs per website: 3.3
+14.Oct 2024 11:52:00 [INFO] === CATEGORY: law_and_government ===
+14.Oct 2024 11:52:00 [INFO] # Libs: 801
+14.Oct 2024 11:52:00 [INFO] # Versions: 1397
+14.Oct 2024 11:52:00 [INFO] # Websites: 220
+14.Oct 2024 11:52:00 [INFO] # Libs per website: 3.6
+14.Oct 2024 11:52:02 [INFO] === CATEGORY: lifestyle ===
+14.Oct 2024 11:52:02 [INFO] # Libs: 1280
+14.Oct 2024 11:52:02 [INFO] # Versions: 1972
+14.Oct 2024 11:52:02 [INFO] # Websites: 284
+14.Oct 2024 11:52:02 [INFO] # Libs per website: 4.5
+14.Oct 2024 11:52:02 [INFO] [== Average Release Time of Each Category ==]
+{'adult': '2018-07-06', 'arts_and_entertainment': '2019-12-26', 'business_and_consumer_services': '2020-03-28', 'community_and_society': '2019-10-31', 'computers_electronics_and_technology': '2020-01-01', 'ecommerce_and_shopping': '2019-12-23', 'finance': '2020-02-19', 'food_and_drink': '2020-08-09', 'gambling': '2019-09-13', 'games': '2019-05-07', 'health': '2020-02-01', 'heavy_industry_and_engineering': '2019-09-22', 'hobbies_and_leisure': '2019-06-29', 'home_and_garden': '2020-03-11', 'jobs_and_career': '2020-02-25', 'law_and_government': '2019-06-21', 'lifestyle': '2020-03-11'}
