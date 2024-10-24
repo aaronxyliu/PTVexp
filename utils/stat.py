@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 # Frequency
 class Distribution:
@@ -38,8 +39,9 @@ class Distribution:
         average_dict = {}
         for entry in self.dict.items():
             average_dict[entry[0]] = self.avgDate(entry[1])
-        # average_dict = dict(sorted(average_dict.items(), key=lambda d: int(''.join(d[1].split('-'))), reverse=True))
-        
+        average_dict = dict(sorted(average_dict.items(), key=lambda d: int(''.join(d[1].split('-'))), reverse=True))
+        # average_dict = dict(sorted(average_dict.items(), key=lambda d: d[0], reverse=False))
+
         if title:
             return f"[== {str(title)} ==]\n" + str(average_dict)
         else:
@@ -54,15 +56,46 @@ class Distribution:
                             .mean()
                             .astype('datetime64[s]'))
         return str(mean_date)[:10]
+
+    def avgYear(self, dates: list) -> str:
+        # Calculate the average date for a list of dates
+        if not dates or len(dates) == 0:
+            return ''
+        mean_date = (np.array(dates, dtype='datetime64[s]')
+                            .view('i8')
+                            .mean()
+                            .astype('datetime64[s]'))
+        return str(mean_date)[:4]
     
-    def showplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByY: bool = False, head: int = -1):
+    def showplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByY: bool = False, head: int = -1, partition: int = -1):
         # "processFunc' must be a function that receives a list and returns a number
+        # 'head' specify only display several items in the front
+        # 'partition' makes data grouped by the X label
 
         if len(self.dict) == 0:
             return
+        
+        show_dict = self.dict.copy()
+        if not sortByY:
+            show_dict = dict(sorted(show_dict.items(), key=lambda x:float(x[0]), reverse=False))
 
-        show_dict = {}
-        for pair in self.dict.items():
+        if partition > 0:
+            # Group into partitiions after sorting by X label
+            new_show_dict = {}
+            i = 0
+            for pair in show_dict.items():
+                part_base = math.floor(i * partition / len(show_dict))
+                part_start_index = math.floor(part_base * len(show_dict) / partition)
+                part_end_index = math.floor((part_base + 1) * len(show_dict) / partition) - 1
+                part_label = f'{list(show_dict)[part_start_index]} ~ {list(show_dict)[part_end_index]}'
+                if part_label not in new_show_dict:
+                    new_show_dict[part_label] = pair[1]
+                else:
+                    new_show_dict[part_label] += pair[1]
+                i += 1
+            show_dict = new_show_dict
+
+        for pair in show_dict.items():
             if not processFunc:
                 # Calculate the frequency by default
                 show_dict[pair[0]] = len(pair[1])
@@ -72,8 +105,7 @@ class Distribution:
         # Sort by X or Y
         if sortByY:
             show_dict = dict(sorted(show_dict.items(), key=lambda x:x[1], reverse=True))
-        else:
-            show_dict = dict(sorted(show_dict.items(), key=lambda x:x[0], reverse=False))
+        
 
         x_list = []
         y_list = []
@@ -86,7 +118,7 @@ class Distribution:
             y_list.append(pair[1])
             i += 1
 
-        plt.bar(x=range(len(x_list)), height=y_list, width=0.5,
+        plt.bar(x=range(len(x_list)), height=y_list, width=0.9,
             color="#F5CCCC",
             edgecolor="#C66667")
 
@@ -95,6 +127,8 @@ class Distribution:
         plt.ylabel(ylabel or "Frequency")
 
         plt.xticks(rotation=-40)
+
+        # plt.ylim(bottom=2010, top=2030)
 
         plt.rcParams['figure.figsize'] = [6.2, 3]
         if title:

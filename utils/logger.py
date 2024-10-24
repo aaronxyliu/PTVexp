@@ -5,6 +5,7 @@ import re
 
 class getLogger:
     def __init__(self):
+        self.indent_num = 0
         caller_filename_full = inspect.stack()[1].filename 
         caller_filename_only = os.path.splitext(os.path.basename(caller_filename_full))[0]
 
@@ -34,12 +35,20 @@ class getLogger:
 
     def close(self):
         self.outfile.close()
+    
+    def indent(self):
+        self.indent_num += 1
+
+    def outdent(self):
+        if self.indent_num > 0:
+            self.indent_num -= 1
 
     def info(self, content=''):
         time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
         header = '[INFO]'
-        print(colors.fg.green, time_str, colors.fg.green, header, colors.reset, content)
-        self.outfile.write(f'{time_str} {header} {str(content)}\n')
+        indent = ' ' * self.indent_num * 2
+        print(colors.fg.green, time_str, colors.fg.green, header, colors.reset, indent, content)
+        self.outfile.write(f'{time_str} {header} {indent}{str(content)}\n')
     
     def debug(self, content=''):
         time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
@@ -58,6 +67,10 @@ class getLogger:
         header = '[ERROR]'
         print(colors.fg.green, time_str,  colors.fg.red, header, colors.reset, content)
         self.outfile.write(f'{time_str} {header} {str(content)}\n')
+    
+    def newline(self):
+        print('')
+        self.outfile.write(f'\n')
 
     def custom(self, title, content=''):
         # The title text is defined by user

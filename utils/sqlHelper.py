@@ -93,7 +93,7 @@ class ConnDatabase:
         res = self.cursor.fetchall()
         return res
     
-    def fetchone(self, cmd: str) -> list:
+    def fetchone(self, cmd: str) -> tuple:
         self.cursor.execute(cmd)
         return self.cursor.fetchone()
     

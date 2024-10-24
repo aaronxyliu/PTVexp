@@ -8,6 +8,8 @@ import sys
 import json
 import numpy as np
 
+SUPPLEMENT = False
+
 
 def average_date(dates: list) -> str:
     if not dates or len(dates) == 0:
@@ -42,10 +44,25 @@ def analyze(table_name):
         libs = json.loads(entry[0])
         id = entry[2]
         if libs:
+            if isinstance(libs, str):
+                libs = json.loads(libs)
+
+            lodash = None
+            underscore = None
+                
             for lib in libs:
-                libname = lib['libname']
+                if SUPPLEMENT and 'date' in lib:
+                    continue
+
+                libname = lib['libname'] 
+
+                if libname == 'underscore.js':
+                    underscore = lib
+                if libname == 'lodash.js':
+                    lodash = lib
+
                 lib_cnt += 1
-                lib['date'] = ''
+                
                 if libname not in lib_tablename_list:
                     logger.warning(f'{libname} has no data in the Releases database.')
                     no_release_dist.add(libname)
@@ -56,6 +73,8 @@ def analyze(table_name):
                     logger.warning(f'{libname} is empty in the Releases database.')
                     no_release_dist.add(libname)
                     continue
+
+                lib['date'] = ''
 
                 versions = lib['version']
                 date_list = []
@@ -94,6 +113,17 @@ def analyze(table_name):
                 # Take the average release date
                 lib['date'] = average_date(date_list)
 
+            if lodash and underscore:
+                underscore['date'] = lodash['date']
+                            
+            if lib['date'] == '':
+                # Take the date as the average of all releases in the database
+                dates = []
+                for e in res2:
+                    dates.append(e[1])
+                lib['date'] = average_date(dates)
+                continue
+            
             conn.update(table_name, ['result'], (json.dumps(libs),), f"`id`='{id}'")
 
         logger.info(f'{id} finished.')
@@ -121,7 +151,7 @@ def analyze(table_name):
 
 
 if __name__ == '__main__':
-    # Usage: python3 analyze/lib_release_time_induce.py result03
+    # Usage: python3 analyze/lib_release_time_induce.py result04
     if len(sys.argv) == 1:
         logger.info('Need provide the detection result table name.')
     elif len(sys.argv) == 2:
