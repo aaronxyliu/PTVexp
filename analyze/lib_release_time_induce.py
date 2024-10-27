@@ -35,6 +35,7 @@ def analyze(table_name):
     case3 = 0
     case4 = 0
 
+    old_id = 0
     for entry in res:
         time = entry[1]
         if time < 0:
@@ -43,6 +44,8 @@ def analyze(table_name):
 
         libs = json.loads(entry[0])
         id = entry[2]
+
+        
         if libs:
             if isinstance(libs, str):
                 libs = json.loads(libs)
@@ -113,20 +116,23 @@ def analyze(table_name):
                 # Take the average release date
                 lib['date'] = average_date(date_list)
 
+                if lib['date'] == '':
+                    # Take the date as the average of all releases in the database
+                    dates = []
+                    for e in res2:
+                        dates.append(e[1])
+                    lib['date'] = average_date(dates)
+                    continue
+
             if lodash and underscore:
                 underscore['date'] = lodash['date']
-                            
-            if lib['date'] == '':
-                # Take the date as the average of all releases in the database
-                dates = []
-                for e in res2:
-                    dates.append(e[1])
-                lib['date'] = average_date(dates)
-                continue
-            
+                        
             conn.update(table_name, ['result'], (json.dumps(libs),), f"`id`='{id}'")
 
-        logger.info(f'{id} finished.')
+        if id - old_id >= 100:
+            logger.info(f'{id} finished.')
+            old_id = id
+
     logger.info(f'# Libs: {lib_cnt}')
     logger.info(f'# Versions: {version_cnt}')
     logger.info(f'# Libs no release date: {no_release_dist.size()}')
@@ -138,20 +144,11 @@ def analyze(table_name):
 
     logger.info(no_release_dist.freqDict('No Release Time Match Libraries'))
     logger.info(no_match_dist.freqDict("NO VERSION INFO IN DATABASE 'RELEASES'"))
-
-    
-
-                
-                
-
-                            
-
-
-
+   
 
 
 if __name__ == '__main__':
-    # Usage: python3 analyze/lib_release_time_induce.py result04
+    # Usage: python3 analyze/lib_release_time_induce.py result05
     if len(sys.argv) == 1:
         logger.info('Need provide the detection result table name.')
     elif len(sys.argv) == 2:

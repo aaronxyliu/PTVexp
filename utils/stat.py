@@ -67,7 +67,7 @@ class Distribution:
                             .astype('datetime64[s]'))
         return str(mean_date)[:4]
     
-    def showplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByY: bool = False, head: int = -1, partition: int = -1):
+    def showplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByY: bool = False, head: int = -1, partition: int = -1, yrange: list=None):
         # "processFunc' must be a function that receives a list and returns a number
         # 'head' specify only display several items in the front
         # 'partition' makes data grouped by the X label
@@ -128,7 +128,8 @@ class Distribution:
 
         plt.xticks(rotation=-40)
 
-        # plt.ylim(bottom=2010, top=2030)
+        if yrange:
+            plt.ylim(bottom=yrange[0], top=yrange[1])
 
         plt.rcParams['figure.figsize'] = [6.2, 3]
         if title:

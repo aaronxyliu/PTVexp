@@ -8,12 +8,9 @@ logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
 conn2 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 import pandas as pd
-import sys
-import json
-import multiprocessing
-import time
 
-WEBSITE_NUM_LIMIT = 20000
+OUTPUT_TABLE = 'result05'
+WEBSITE_NUM_LIMIT = 40000
 
 old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
 BLACKLIST = old_df['Domain'].tolist()
@@ -24,7 +21,7 @@ def updateAll():
     df = pd.read_csv(WEBSITE_LIST_FILE)
     urls = df['url'].tolist()
 
-    conn.create_if_not_exist('result04', '''
+    conn.create_if_not_exist(OUTPUT_TABLE , '''
         `id` int unsigned NOT NULL AUTO_INCREMENT,
         `rank` int DEFAULT NULL,
         `url` varchar(500) DEFAULT NULL,
@@ -41,16 +38,16 @@ def updateAll():
             
         res = conn.fetchone(f'''SELECT `result`, `time`, `dscp` FROM `result03` WHERE `url`='{url}';''')
         if res:
-            conn.insert('result04', ['rank', 'url', 'result', 'time', 'dscp'], (rank, url, res[0], res[1], res[2]))
+            conn.insert(OUTPUT_TABLE, ['rank', 'url', 'result', 'time', 'dscp'], (rank, url, res[0], res[1], res[2]))
         else:
             res2 = conn2.fetchone(f'''SELECT `result`, `time`, `dscp` FROM `result01` WHERE `url`='{url}';''')
             if res2:
-                conn.insert('result04', ['rank', 'url', 'result', 'time', 'dscp'], (rank, url, res2[0], res2[1], res2[2]))
+                conn.insert(OUTPUT_TABLE, ['rank', 'url', 'result', 'time', 'dscp'], (rank, url, res2[0], res2[1], res2[2]))
             else:
                 logger.warning(f'{rank}: {url} no results found.')
 
-        logger.info(f'{rank} completes.')
         rank += 1
+    logger.info('Complete.')
 
 
 if __name__ == '__main__':

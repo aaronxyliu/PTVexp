@@ -9,7 +9,7 @@ import json
 import pandas as pd
 
 URL_BLACKLIST = []
-DETECTION_RESULT_TABLE = 'result04'
+DETECTION_RESULT_TABLE = 'result05'
 RANK_SAVE_PATH = 'data/LibRank/'
 
 def starrank():
@@ -63,9 +63,12 @@ def analyze():
         if libs:
             for lib in libs:
                 libname = lib['libname']
+                freq_dict.add(libname)    
+                if 'date' not in lib:
+                    continue
                 date = lib['date']       
 
-                freq_dict.add(libname)         
+                     
 
                 if date and len(date) >= 4:
                     date_dict.add(libname, date)

@@ -5,4 +5,5 @@ import numpy as np
 
 
 
-print('%x')
+x = [1,2,3]
+print(np.mean(x))
