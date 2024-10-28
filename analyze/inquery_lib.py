@@ -48,6 +48,7 @@ def analyze(libname):
     web_cnt = 0
     lib_cnt = 0
     no_date_cnt = 0
+    url_list = []
 
     for entry in res:
         time = entry[1]
@@ -63,6 +64,8 @@ def analyze(libname):
             for lib in libs:
                 if lib['libname'] != libname:
                     continue
+
+                url_list.append(url)
 
                 version = lib['version']
                 date = lib['date']
@@ -81,6 +84,7 @@ def analyze(libname):
 
     logger.info(f'# total websites: {web_cnt}')
     logger.info(f'# websites containing {libname}: {lib_cnt} ({round(lib_cnt * 100 / web_cnt, 1)}%)')
+    logger.info(url)
     logger.info(f'# no date: {no_date_cnt}')
     logger.info(f'avg. release date in websites: {year_dist.avgDate(date_list)}')
     # year_dist.showplot(f'Version Year Distribution of {libname}', xlabel='year', ylabel='# occurrences')

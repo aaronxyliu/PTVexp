@@ -8,7 +8,7 @@ import sys
 import json
 import numpy as np
 
-SUPPLEMENT = False
+SUPPLEMENT = True
 
 
 def average_date(dates: list) -> str:
@@ -65,6 +65,8 @@ def analyze(table_name):
                     lodash = lib
 
                 lib_cnt += 1
+
+                lib['date'] = ''
                 
                 if libname not in lib_tablename_list:
                     logger.warning(f'{libname} has no data in the Releases database.')
@@ -77,7 +79,7 @@ def analyze(table_name):
                     no_release_dist.add(libname)
                     continue
 
-                lib['date'] = ''
+                
 
                 versions = lib['version']
                 date_list = []

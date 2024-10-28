@@ -10,7 +10,7 @@ Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 import json
 
 URL_BLACKLIST = []
-DETECTION_RESULT_TABLE = 'result04'
+DETECTION_RESULT_TABLE = 'result05'
 RANK_SAVE_TABLE = 'libs'
 
 
@@ -70,7 +70,7 @@ def updateAll():
     # Sort based on Github star from high to low
     star_dict = dict(sorted(star_dict.items(), key=lambda x:x[1], reverse=True))
 
-    conn.create_new_table(RANK_SAVE_TABLE, '''
+    conn3.create_new_table(RANK_SAVE_TABLE, '''
         `library` varchar(100) DEFAULT NULL,
         `star` int DEFAULT NULL,
         `starrank` int DEFAULT NULL,

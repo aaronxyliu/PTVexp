@@ -76,10 +76,10 @@ def analyze(table_name, web_num_limit=1000000):
     logger.info(avg_release_time_dist.avgDateDict('Average Release Time of Each Library'))
     # lib_dist.showplot('Most Frequently Used Libraries', xlabel='library', ylabel='# occurrences', sortByFreq=True, head=20)
     # lib_date_dist.showplot('Library Occurrence Release Time Distribution', xlabel='year', ylabel='# library occurrences')
-    # date_dist.showplot('Library Release Year Distribution on Top 10k Websites', xlabel='year', ylabel='# library occurrences')
+    date_dist.showplot('Library Release Year Distribution on Top 10k Websites', xlabel='year', ylabel='# library occurrences')
     
     
-    date_dist_per_website.showplot('Library Release Year Distribution on Top 10k Websites', xlabel='year', ylabel='# websites')
+    # date_dist_per_website.showplot('Library Release Year Distribution on Top 10k Websites', xlabel='year', ylabel='# websites')
 
     # new_dist = Dist()
     # for pair in avg_release_time_dist.avgDateDict().items():
