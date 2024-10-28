@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import numpy as np
 import math
 
@@ -67,7 +68,7 @@ class Distribution:
                             .astype('datetime64[s]'))
         return str(mean_date)[:4]
     
-    def showplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByY: bool = False, head: int = -1, partition: int = -1, yrange: list=None):
+    def showplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByY: bool = False, head: int = -1, partition: int = -1, yrange: list=None, dateY:bool = False):
         # "processFunc' must be a function that receives a list and returns a number
         # 'head' specify only display several items in the front
         # 'partition' makes data grouped by the X label
@@ -77,7 +78,7 @@ class Distribution:
         
         show_dict = self.dict.copy()
         if not sortByY:
-            show_dict = dict(sorted(show_dict.items(), key=lambda x:float(x[0]), reverse=False))
+            show_dict = dict(sorted(show_dict.items(), key=lambda x:x[0], reverse=False))
 
         if partition > 0:
             # Group into partitiions after sorting by X label
@@ -100,11 +101,14 @@ class Distribution:
                 # Calculate the frequency by default
                 show_dict[pair[0]] = len(pair[1])
             else:
-                show_dict[pair[0]] = float(processFunc(pair[1]))
+                show_dict[pair[0]] = processFunc(pair[1])
 
         # Sort by X or Y
         if sortByY:
-            show_dict = dict(sorted(show_dict.items(), key=lambda x:x[1], reverse=True))
+            if dateY:
+                show_dict = dict(sorted(show_dict.items(), key=lambda d: int(''.join(d[1].split('-'))), reverse=True))
+            else:
+                show_dict = dict(sorted(show_dict.items(), key=lambda x:x[1], reverse=True))
         
 
         x_list = []
@@ -117,6 +121,11 @@ class Distribution:
             x_list.append(pair[0])
             y_list.append(pair[1])
             i += 1
+        
+        if dateY:
+            y_list = mdates.datestr2num(y_list)
+
+        fig, ax = plt.subplots(figsize=(6.2, 3))
 
         plt.bar(x=range(len(x_list)), height=y_list, width=0.9,
             color="#F5CCCC",
@@ -126,12 +135,17 @@ class Distribution:
         plt.xlabel(xlabel or "Item")
         plt.ylabel(ylabel or "Frequency")
 
-        plt.xticks(rotation=-40)
+        plt.xticks(rotation=-25)
 
         if yrange:
-            plt.ylim(bottom=yrange[0], top=yrange[1])
+            if dateY:
+                plt.ylim(bottom=mdates.datestr2num(yrange[0]), top=mdates.datestr2num(yrange[1]))
+            else:
+                plt.ylim(bottom=yrange[0], top=yrange[1])
 
-        plt.rcParams['figure.figsize'] = [6.2, 3]
+        if dateY:
+            ax.yaxis_date()
+
         if title:
             plt.title(title)
         plt.show()
