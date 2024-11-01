@@ -22,17 +22,24 @@ def retrieveInfo(driver, url):
         driver.get("http://" + url)
     except Exception as e:
         logger.warning(e)
-        return '[]', -1, 'web loading failed'   # web loading failed
+        return '[]', -1, 'web loading failed', ''   # web loading failed
+    
+    cur_url = ''
+    try:
+        cur_url = driver.current_url
+    except:
+        pass
     
     try:
         # The selenium title fetching is not stable
         webtitle = str.lower(driver.title)
+        print(webtitle)
         if '404' in webtitle or '403' in webtitle or 'error' in webtitle:
             logger.warning(f'Page blocked: {webtitle}.')
-            return '[]', -1, f'Page blocked: {webtitle}'
+            return '[]', -1, f'Page blocked: {webtitle}', cur_url
         elif 'just a moment...' in webtitle:
             logger.warning(f'Human verification required: {webtitle}.')
-            return '[]', -1, f'Human verification required: {webtitle}'
+            return '[]', -1, f'Human verification required: {webtitle}', cur_url
     except:
         pass
     
@@ -45,13 +52,13 @@ def retrieveInfo(driver, url):
         driver.quit()
         driver.start_client()
 
-        return '[]', -1, 'detection timeout'   # detection timeout
+        return '[]', -1, 'detection timeout', cur_url   # detection timeout
     
     result_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-result"]').get_attribute("content")
     detect_time_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-time"]').get_attribute("content")
     detect_time = float(detect_time_str)
 
-    return result_str, detect_time, ''
+    return result_str, detect_time, '', cur_url
 
 def ExistUnknown(table_name: str, url: str) -> bool:
     res = conn.fetchone(f"SELECT `result` FROM {table_name} WHERE `url`='{url}'")
@@ -75,6 +82,7 @@ def updateAll(df, table_name, start_no = 0, channel = None):
         `result` json DEFAULT NULL,
         `time` float DEFAULT NULL,
         `dscp` varchar(500) DEFAULT NULL,
+        `pageurl` varchar(500) DEFAULT NULL,
         PRIMARY KEY (`id`)
         ''')
     website_num = df.shape[0]
@@ -84,7 +92,7 @@ def updateAll(df, table_name, start_no = 0, channel = None):
         opt.add_extension(f'bin/PTV.crx')
         service = webdriver.ChromeService(executable_path="./bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=opt)
-        driver.set_page_load_timeout(8)
+        driver.set_page_load_timeout(12)
 
         while True:
             if i < start_no:
@@ -107,10 +115,10 @@ def updateAll(df, table_name, start_no = 0, channel = None):
             # if not ExistUnknown(table_name, url):
             #     continue
 
-            result_str, detect_time, exception = retrieveInfo(driver, url)
+            result_str, detect_time, exception, pageurl = retrieveInfo(driver, url)
             conn.update_otherwise_insert(table_name\
-                , ['rank', 'result', 'time', 'dscp']\
-                , (rank, result_str, detect_time, exception)\
+                , ['rank', 'result', 'time', 'dscp', 'pageurl']\
+                , (rank, result_str, detect_time, exception, pageurl)\
                 , 'url', url)
         
             
