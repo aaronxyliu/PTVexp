@@ -28,8 +28,11 @@ def retrieveInfo(driver, url):
         # The selenium title fetching is not stable
         webtitle = str.lower(driver.title)
         if '404' in webtitle or '403' in webtitle or 'error' in webtitle:
-            logger.warning('Page blocked.')
-            return '[]', -1, 'page blocked'
+            logger.warning(f'Page blocked: {webtitle}.')
+            return '[]', -1, f'Page blocked: {webtitle}'
+        elif 'just a moment...' in webtitle:
+            logger.warning(f'Human verification required: {webtitle}.')
+            return '[]', -1, f'Human verification required: {webtitle}'
     except:
         pass
     
@@ -81,7 +84,7 @@ def updateAll(df, table_name, start_no = 0, channel = None):
         opt.add_extension(f'bin/PTV.crx')
         service = webdriver.ChromeService(executable_path="./bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=opt)
-        driver.set_page_load_timeout(5)
+        driver.set_page_load_timeout(8)
 
         while True:
             if i < start_no:
