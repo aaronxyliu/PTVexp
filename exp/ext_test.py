@@ -46,7 +46,7 @@ def retrieveInfo(driver, url):
         pass
     
     try:
-        WebDriverWait(driver, timeout=20).until(presence_of_element_located((By.XPATH, '//meta[@id="lib-detect-time" and @content]')))
+        WebDriverWait(driver, timeout=20).until(presence_of_element_located((By.XPATH, '//meta[@id="lib-detect-result" and @content]')))
     except Exception as e:
         logger.warning(e)
 
@@ -119,6 +119,8 @@ def updateAll(df, table_name, start_no = 0, channel = None):
             #     continue
 
             result_str, detect_time, exception, pageurl, title = retrieveInfo(driver, url)
+            print('result')
+            print(result_str)
             conn.update_otherwise_insert(table_name\
                 , ['rank', 'result', 'time', 'dscp', 'pageurl', 'title']\
                 , (rank, result_str, detect_time, exception, pageurl[:400], title[:900])\
