@@ -97,7 +97,7 @@ def updateAll(df, table_name, start_no = 0, channel = None):
         opt.add_extension(f'bin/PTV.crx')
         service = webdriver.ChromeService(executable_path="./bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=opt)
-        driver.set_page_load_timeout(12)
+        driver.set_page_load_timeout(20)
 
         while True:
             if i < start_no:
@@ -121,8 +121,6 @@ def updateAll(df, table_name, start_no = 0, channel = None):
             #     continue
 
             result_str, detect_time, exception, pageurl, title = retrieveInfo(driver, url)
-            print('result')
-            print(result_str)
             conn.update_otherwise_insert(table_name\
                 , ['rank', 'result', 'time', 'dscp', 'pageurl', 'title']\
                 , (rank, result_str, detect_time, exception, pageurl[:400], title[:900])\
@@ -166,8 +164,8 @@ if __name__ == '__main__':
         time_delta = time.time() - channel['heartbeat_time']
         print(time_delta)
 
-        if time_delta > 30:
-            # The heartbeat interval is larger than 30 seconds
+        if time_delta > 45:
+            # The heartbeat interval is larger than 45 seconds
             logger.info(f"Process timeouts. Skip this page.")
             channel['start_no'] += 1
             p.terminate()
