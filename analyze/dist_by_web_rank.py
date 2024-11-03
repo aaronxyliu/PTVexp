@@ -41,13 +41,13 @@ def analyze(table_name, lib_blacklist):
                     avg_release_time_dist.add(rank, date)
             freq_dist.add(rank, len(libs) - in_blacklist)
     
-    # avg_release_time_dist.showplot('Average Date of Libraries of Different Web Ranks', xlabel='rank', ylabel='avg. date', partition=20, processFunc=avg_release_time_dist.avgYear, yrange=[2010,2025])
-    freq_dist.showplot('Average Libraries of Each Web Ranks', xlabel='rank', ylabel='avg. # of loaded libs', partition=15, processFunc=lambda x:np.mean(x))
-    # diversity_dist.showplot('Number of Different Libraries Used by Each Web Ranks', xlabel='rank', ylabel='# libraries', partition=15, processFunc=lambda x:len(set(x)))
+    # avg_release_time_dist.showplot('Average Date of Libraries of Different Web Ranks', xlabel='rank', ylabel='avg. date', partition=20, processFunc=avg_release_time_dist.avgDate, dateY=True, yrange=['2010-01-01','2025-01-01'])
+    freq_dist.showplot('Average Loaded Libraries Number on Each Web Rank', xlabel='rank', ylabel='avg. # of loaded libs', partition=15, processFunc=lambda x:np.mean(x))
+    # diversity_dist.showplot('Number of Different Libraries Used by Each Web Rank', xlabel='rank', ylabel='# libraries', partition=15, processFunc=lambda x:len(set(x)))
 
 
 
-def mask(percent, reverse=False):
+def mask(percent=0, reverse=False):
     res = conn2.selectAll('libs', ['library', 'starrank', 'star'])
     lib_blacklist = []
     lib_num = len(res)
@@ -60,5 +60,5 @@ def mask(percent, reverse=False):
             lib_blacklist.append(entry[0])
     return lib_blacklist
 
-lib_blacklist = mask(0.6)
-analyze('result05', lib_blacklist)
+lib_blacklist = mask(0.5, reverse=True)
+analyze('result_100k', lib_blacklist)

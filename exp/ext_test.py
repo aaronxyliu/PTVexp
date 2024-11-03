@@ -29,6 +29,8 @@ def retrieveInfo(driver, url):
         cur_url = driver.current_url
     except:
         pass
+    if cur_url == None:
+        cur_url = ''
     
     webTitle = ''
     try:

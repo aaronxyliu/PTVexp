@@ -10,7 +10,7 @@ import math
 import pandas as pd
 
 URL_BLACKLIST = []
-DETECTION_RESULT_TABLE = 'result05'
+DETECTION_RESULT_TABLE = 'result_100k'
 RANK_SAVE_PATH = 'data/LibRank/'
 
 def analyze():
@@ -41,7 +41,7 @@ def analyze():
                         rank = int(df.loc[df['library']==libname, 'rank'].iloc[0])
                         date_dist.add(rank, date)
         
-    date_dist.showplot('Average Date of Libraries of Different Ranks', xlabel='rank', ylabel='avg. date', partition=10, processFunc=date_dist.avgYear, yrange=[2010,2025])
+    date_dist.showplot('Average Date of Libraries of Different Ranks', xlabel='rank', ylabel='avg. date', partition=10, processFunc=date_dist.avgDate, dateY=True, yrange=['2010-01-01','2025-01-01'])
 
 if __name__ == '__main__':
 

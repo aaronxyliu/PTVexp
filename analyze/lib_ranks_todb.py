@@ -10,8 +10,8 @@ Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 import json
 
 URL_BLACKLIST = []
-DETECTION_RESULT_TABLE = 'result05'
-RANK_SAVE_TABLE = 'libs'
+DETECTION_RESULT_TABLE = 'result_100k'
+RANK_SAVE_TABLE = 'libs_100k'
 
 
 def basicInfo(libname):

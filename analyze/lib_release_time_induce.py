@@ -10,6 +10,8 @@ import numpy as np
 
 SUPPLEMENT = True
 
+START_RANK = 78248
+
 
 def average_date(dates: list) -> str:
     if not dates or len(dates) == 0:
@@ -45,10 +47,20 @@ def analyze(table_name):
         libs = json.loads(entry[0])
         id = entry[2]
 
+        if id < START_RANK:
+            continue
+
         
         if libs:
             if isinstance(libs, str):
                 libs = json.loads(libs)
+
+            if isinstance(libs, dict):
+                # Convert dictionary to list    example: https://kuruma-ex.jp/
+                new_libs = []
+                for _, val in libs.items():
+                    new_libs.append(val)
+                libs = new_libs
 
             lodash = None
             underscore = None
@@ -57,6 +69,8 @@ def analyze(table_name):
                 if SUPPLEMENT and 'date' in lib:
                     continue
 
+                # Cannot encode object to json successfully on some websites:
+                # https://itaucorretora.com.br/
                 libname = lib['libname'] 
 
                 if libname == 'underscore.js':

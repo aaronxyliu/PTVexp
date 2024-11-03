@@ -61,4 +61,4 @@ def mask(percent, reverse=False):
     return lib_blacklist
 
 # lib_blacklist = mask(0.6)
-analyze('result05')
+analyze()

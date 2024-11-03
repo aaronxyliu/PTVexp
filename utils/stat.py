@@ -68,7 +68,7 @@ class Distribution:
                             .astype('datetime64[s]'))
         return str(mean_date)[:4]
     
-    def showplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByY: bool = False, head: int = -1, partition: int = -1, yrange: list=None, dateY:bool = False):
+    def showplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByX: bool = False, sortByY: bool = False, head: int = -1, partition: int = -1, yrange: list=None, dateY:bool = False, strX:bool = False):
         # "processFunc' must be a function that receives a list and returns a number
         # 'head' specify only display several items in the front
         # 'partition' makes data grouped by the X label
@@ -77,8 +77,15 @@ class Distribution:
             return
         
         show_dict = self.dict.copy()
-        if not sortByY:
-            show_dict = dict(sorted(show_dict.items(), key=lambda x:x[0], reverse=False))
+        if partition > 0:
+            sortByX = True
+
+        if sortByX:
+            if strX:
+                show_dict = dict(sorted(show_dict.items(), key=lambda x:x[0], reverse=False))
+            else:
+                show_dict = dict(sorted(show_dict.items(), key=lambda x:float(x[0]), reverse=False))
+        
 
         if partition > 0:
             # Group into partitiions after sorting by X label
@@ -96,12 +103,15 @@ class Distribution:
                 i += 1
             show_dict = new_show_dict
 
+        
+
         for pair in show_dict.items():
             if not processFunc:
                 # Calculate the frequency by default
                 show_dict[pair[0]] = len(pair[1])
             else:
                 show_dict[pair[0]] = processFunc(pair[1])
+        
 
         # Sort by X or Y
         if sortByY:

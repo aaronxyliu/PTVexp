@@ -84,12 +84,26 @@ class ConnDatabase:
             self.insert(table_name, fields + [condition_field], values + (condition_value,))
         else:
             self.update(table_name, fields, values, condition)
- 
-    def selectAll(self, table_name: str, fields: list) -> list:
+    
+    def selectOne(self, table_name: str, fields: list, condition: str = None) -> list:
         if len(fields) == 0:
             return []
         fields_str = "`, `".join(fields)
-        self.cursor.execute(f"SELECT `{fields_str}` FROM `{table_name}`;")
+        if condition:
+            self.cursor.execute(f"SELECT `{fields_str}` FROM `{table_name}` WHERE {condition};")
+        else:
+            self.cursor.execute(f"SELECT `{fields_str}` FROM `{table_name}`;")
+        res = self.cursor.fetchone()
+        return res
+ 
+    def selectAll(self, table_name: str, fields: list, condition: str = None) -> list:
+        if len(fields) == 0:
+            return []
+        fields_str = "`, `".join(fields)
+        if condition:
+            self.cursor.execute(f"SELECT `{fields_str}` FROM `{table_name}` WHERE {condition};")
+        else:
+            self.cursor.execute(f"SELECT `{fields_str}` FROM `{table_name}`;")
         res = self.cursor.fetchall()
         return res
     

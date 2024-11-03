@@ -9,7 +9,7 @@ import json
 import pandas as pd
 
 URL_BLACKLIST = []
-DETECTION_RESULT_TABLE = 'result05'
+DETECTION_RESULT_TABLE = 'result_100k'
 RANK_SAVE_PATH = 'data/LibRank/'
 
 def starrank():
