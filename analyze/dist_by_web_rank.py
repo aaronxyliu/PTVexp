@@ -50,6 +50,7 @@ def analyze(table_name, lib_blacklist):
 
 
 def mask(percent=0, reverse=False):
+    # Mask high-star libraries (when reverse is False)
     res = conn2.selectAll('libs', ['library', 'starrank', 'star'])
     lib_blacklist = []
     lib_num = len(res)

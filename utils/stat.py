@@ -5,7 +5,7 @@ import math
 
 # Frequency
 class Distribution:
-    def __init__(self):
+    def __init__(self) -> None:
         self.dict = {}  # Store item and its frequency pair
         
     def add(self, item: str, value: str = ''):
@@ -191,6 +191,28 @@ class Distribution:
         ax.legend(loc="upper right")
 
         plt.show()
-                    
+
+
+class Scatter:
+    def __init__(self, xlist, ylist) -> None:
+        self.xlist = xlist
+        self.ylist = ylist
+
+    def plot(self, title: str = None, xlabel: str = None, ylabel: str = None, dateY: bool = False, yrange: list=None):
+        fig, ax = plt.subplots()
+        plt.scatter(self.xlist, self.ylist)
+        plt.xlabel(xlabel or "x")
+        plt.ylabel(ylabel or "y")
+        if yrange:
+            if dateY:
+                plt.ylim(bottom=mdates.datestr2num(yrange[0]), top=mdates.datestr2num(yrange[1]))
+            else:
+                plt.ylim(bottom=yrange[0], top=yrange[1])
+        if dateY:
+            ax.yaxis_date()
+        if title:
+            plt.title(title)
+        plt.show()
+
 
             
