@@ -10,7 +10,7 @@ import numpy as np
 
 SUPPLEMENT = True
 
-START_RANK = 78248
+START_RANK = 0
 
 
 def average_date(dates: list) -> str:

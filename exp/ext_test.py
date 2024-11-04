@@ -13,8 +13,9 @@ import multiprocessing
 import time
 
 # http://hpdns.net/
-old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
-BLACKLIST = old_df['Domain'].tolist()
+# old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
+# BLACKLIST = old_df['Domain'].tolist()
+BLACKLIST = []
 
 def retrieveInfo(driver, url):
     logger.info(f"Retrieving {url}")

@@ -12,16 +12,16 @@ import pandas as pd
 OUTPUT_TABLE = 'result_100k'
 WEBSITE_NUM_LIMIT = 100000
 
-COLUMNS = ['rank', 'url', 'result', 'time', 'dscp', 'pageurl', 'title']
+COLUMNS = ['url', 'result', 'time', 'dscp', 'pageurl', 'title']
 
 old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
 BLACKLIST = old_df['Domain'].tolist()
 
 def updateAll():
 
-    # WEBSITE_LIST_FILE = f'data/top-1m.17oct2024.csv'
-    # df = pd.read_csv(WEBSITE_LIST_FILE)
-    # urls = df['url'].tolist()
+    WEBSITE_LIST_FILE = f'data/top-1m.17oct2024.csv'
+    df = pd.read_csv(WEBSITE_LIST_FILE)
+    urls = df['url'].tolist()
 
     conn.create_new_table(OUTPUT_TABLE , '''
         `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -35,21 +35,24 @@ def updateAll():
         PRIMARY KEY (`id`)
         ''')
     
-    for rank in range(1, WEBSITE_NUM_LIMIT + 1):
-            
-        res = conn.selectOne('result03', COLUMNS, f"`rank`='{rank}'")
-        if res:
-            conn.insert(OUTPUT_TABLE, COLUMNS, res)
+    for i in range(WEBSITE_NUM_LIMIT):
+        url = urls[i]
+        rank = i + 1    
+       
+        res2 = conn2.selectOne('result01', COLUMNS, f"`rank`={rank}")
+        if res2:
+            conn.insert(OUTPUT_TABLE, ['rank'] + COLUMNS, (rank,) + res2)     
         else:
-            res2 = conn2.selectOne('result01', COLUMNS, f"`rank`='{rank}'")
-            if res2:
-                conn.insert(OUTPUT_TABLE, COLUMNS, res2)     
+            res3 = conn2.selectOne('result02', COLUMNS, f"`rank`={rank}")
+            if res3:
+                conn.insert(OUTPUT_TABLE, ['rank'] + COLUMNS, (rank,) + res3)           
             else:
-                res3 = conn2.selectOne('result02', COLUMNS, f"`rank`='{rank}'")
-                if res3:
-                    conn.insert(OUTPUT_TABLE, COLUMNS, res3)           
+                res = conn.selectOne('result03', COLUMNS, f"`url`='{url}'")
+                if res:
+                    conn.insert(OUTPUT_TABLE, ['rank'] + COLUMNS, (rank,) + res)
                 else:
-                    logger.warning(f'{rank}: no results found.')
+                    conn.insert(OUTPUT_TABLE, ['rank'] + COLUMNS, (rank, url, '[]', -1, 'Not tested', '', ''))
+                    logger.warning(f'{i}: {url}: no results found.')
 
 
     logger.info('Complete.')
