@@ -16,6 +16,7 @@ import time
 # old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
 # BLACKLIST = old_df['Domain'].tolist()
 BLACKLIST = []
+LARGE_INT = 1000000000
 
 def retrieveInfo(driver, url):
     logger.info(f"Retrieving {url}")
@@ -82,7 +83,7 @@ def ExistUnknown(table_name: str, url: str) -> bool:
         
     return False
 
-def updateAll(df, table_name, start_no = 0, channel = None):
+def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
     conn.create_if_not_exist(table_name, '''
         `id` int unsigned NOT NULL AUTO_INCREMENT,
         `rank` int DEFAULT NULL,
@@ -134,7 +135,7 @@ def updateAll(df, table_name, start_no = 0, channel = None):
                 , ['rank', 'result', 'time', 'dscp', 'pageurl', 'title']\
                 , (rank, result_str, detect_time, exception, pageurl[:400], title[:900])\
                 , 'url', url)
-        
+
             
             logger.info(f'{url} finished. ({i} / {website_num})')
             
@@ -145,17 +146,23 @@ def updateAll(df, table_name, start_no = 0, channel = None):
             
 
         driver.quit()
-        if i >= website_num:
+        if i >= website_num or i >= end_no:
             break
 
 if __name__ == '__main__':
-    # Usage: python3 exp/ext_test.py result04 0    "result03" is the table name  "0" is the start number
-    if len(sys.argv) != 3:
-        logger.info('Need provide the output table name and the start number.')
+    # Usage: python3 exp/ext_test.py result04 0 1000    
+    #   ("result03" is the table name,  "0" is the start number,  "1000" is the end number)
+    if len(sys.argv) != 4:
+        logger.info('Need provide the output table name, the start number, and the end number.')
+        exit(0)
+    if int(sys.argv[2]) >= int(sys.argv[3]):
+        logger.info('The end number should be larger than the start number.')
+        exit(0)
 
     channel = multiprocessing.Manager().dict()  # Communication Channel
     channel['heartbeat_time'] = time.time()
     channel['start_no'] = int(sys.argv[2])
+    end_no = int(sys.argv[3])
 
     category = sys.argv[1]
     WEBSITE_LIST_FILE = f'data/top-1m.17oct2024.csv'
@@ -163,7 +170,7 @@ if __name__ == '__main__':
     website_num = df.shape[0]
 
     
-    p = multiprocessing.Process(target=updateAll, args=(df, category, int(sys.argv[2]), channel))
+    p = multiprocessing.Process(target=updateAll, args=(df, category, int(sys.argv[2]), end_no, channel))
     p.start()
 
     while True:
@@ -183,9 +190,9 @@ if __name__ == '__main__':
             p.close()   # release resources
             channel['heartbeat_time'] = time.time()
             
-            p = multiprocessing.Process(target=updateAll, args=(df, category, channel['start_no'], channel))
+            p = multiprocessing.Process(target=updateAll, args=(df, category, channel['start_no'], end_no, channel))
             p.start()
-        if channel['start_no'] >= website_num:
+        if channel['start_no'] >= website_num or channel['start_no'] >= end_no:
             break
 
     if p.is_alive():
