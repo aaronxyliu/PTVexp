@@ -49,7 +49,7 @@ def retrieveInfo(driver, url):
         pass
     
     try:
-        WebDriverWait(driver, timeout=20).until(presence_of_element_located((By.XPATH, '//meta[@id="lib-detect-result" and @content]')))
+        WebDriverWait(driver, timeout=20).until(presence_of_element_located((By.XPATH, '//meta[@id="lib-detect-time" and @content]')))
     except Exception as e:
         logger.warning(e)
 
@@ -60,6 +60,9 @@ def retrieveInfo(driver, url):
         return '[]', -1, 'detection timeout', cur_url, webTitle   # detection timeout
     
     result_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-result"]').get_attribute("content")
+    if result_str == None or result_str == '':
+        return '[]', -1, 'detection error', cur_url, webTitle   # detection timeout
+
     detect_time_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-time"]').get_attribute("content")
     detect_time = float(detect_time_str)
 
