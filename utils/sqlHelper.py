@@ -78,7 +78,7 @@ class ConnDatabase:
     
     def update_otherwise_insert(self, table_name: str, fields: list, values: tuple, condition_field:str, condition_value:any):
         condition = f"`{condition_field}`='{condition_value}'"
-        self.cursor.execute(f'''SELECT COUNT(*) FROM {table_name} WHERE {condition};''')
+        self.cursor.execute(f'''SELECT COUNT(*) FROM `{table_name}` WHERE {condition};''')
         satisfied_no = self.cursor.fetchone()[0]
         if satisfied_no == 0: 
             self.insert(table_name, fields + [condition_field], values + (condition_value,))

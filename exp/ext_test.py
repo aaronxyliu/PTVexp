@@ -98,6 +98,9 @@ def updateAll(df, table_name, start_no = 0, channel = None):
     i = 0
     while True:
         opt = webdriver.ChromeOptions()
+        opt.add_argument("--headless")
+        user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'    
+        opt.add_argument(f'user-agent={user_agent}')
         opt.add_extension(f'bin/PTV.crx')
         service = webdriver.ChromeService(executable_path="./bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=opt)
@@ -125,6 +128,8 @@ def updateAll(df, table_name, start_no = 0, channel = None):
             #     continue
 
             result_str, detect_time, exception, pageurl, title = retrieveInfo(driver, url)
+            print(result_str)
+            print(detect_time)
             conn.update_otherwise_insert(table_name\
                 , ['rank', 'result', 'time', 'dscp', 'pageurl', 'title']\
                 , (rank, result_str, detect_time, exception, pageurl[:400], title[:900])\
