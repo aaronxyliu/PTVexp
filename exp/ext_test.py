@@ -108,7 +108,7 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
         driver.set_page_load_timeout(20)
 
         while True:
-            if i < start_no:
+            if i < channel['next_no']:
                 i += 1
                 continue
             if i >= website_num:
@@ -116,10 +116,6 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
             
             rank = df.loc[i, 'rank']
             url = df.loc[i, 'url']
-
-            if channel:
-                channel['heartbeat_time'] = time.time()
-                channel['start_no'] = i
             
             if url in BLACKLIST:
                 i += 1
@@ -137,9 +133,14 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
                 , 'url', url)
 
             
-            logger.info(f'{url} finished. ({i} / {website_num})')
+            logger.info(f'Rank {i}: {url} finished. Saved to the table `{table_name}`. ({round((i - start_no) * 100 / (end_no - start_no), 1)}%)')
             
             i += 1
+
+            if channel:
+                channel['heartbeat_time'] = time.time()
+                channel['next_no'] = i
+
             if detect_time < 0:
                 # Restart the driver if error appears
                 break
@@ -159,10 +160,12 @@ if __name__ == '__main__':
         logger.info('The end number should be larger than the start number.')
         exit(0)
 
+    start_no = int(sys.argv[2])
+    end_no = int(sys.argv[3])
     channel = multiprocessing.Manager().dict()  # Communication Channel
     channel['heartbeat_time'] = time.time()
-    channel['start_no'] = int(sys.argv[2])
-    end_no = int(sys.argv[3])
+    channel['next_no'] = start_no
+    
 
     category = sys.argv[1]
     WEBSITE_LIST_FILE = f'data/top-1m.17oct2024.csv'
@@ -183,16 +186,16 @@ if __name__ == '__main__':
         if time_delta > 45:
             # The heartbeat interval is larger than 45 seconds
             logger.info(f"Process timeouts. Skip this page.")
-            channel['start_no'] += 1
+            channel['next_no'] += 1
             p.terminate()
 
             time.sleep(1) # waiting for the process termination complete
             p.close()   # release resources
             channel['heartbeat_time'] = time.time()
             
-            p = multiprocessing.Process(target=updateAll, args=(df, category, channel['start_no'], end_no, channel))
+            p = multiprocessing.Process(target=updateAll, args=(df, category, start_no, end_no, channel))
             p.start()
-        if channel['start_no'] >= website_num or channel['start_no'] >= end_no:
+        if channel['next_no'] >= website_num or channel['next_no'] >= end_no:
             break
 
     if p.is_alive():
