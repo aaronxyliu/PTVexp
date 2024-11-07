@@ -12,6 +12,11 @@ import json
 import multiprocessing
 import time
 
+
+WEB_LOAD_TIMEOUT = 30
+PROCESS_UNRESPONSE_TIMEOUT = 60
+DETECTION_TIMEOUT = 25
+
 # http://hpdns.net/
 # old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
 # BLACKLIST = old_df['Domain'].tolist()
@@ -50,7 +55,7 @@ def retrieveInfo(driver, url):
         pass
     
     try:
-        WebDriverWait(driver, timeout=20).until(presence_of_element_located((By.XPATH, '//meta[@id="lib-detect-time" and @content]')))
+        WebDriverWait(driver, timeout=DETECTION_TIMEOUT).until(presence_of_element_located((By.XPATH, '//meta[@id="lib-detect-time" and @content]')))
     except Exception as e:
         logger.warning(e)
 
@@ -105,7 +110,7 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
         opt.add_extension(f'bin/PTV.crx')
         service = webdriver.ChromeService(executable_path="./bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=opt)
-        driver.set_page_load_timeout(20)
+        driver.set_page_load_timeout(WEB_LOAD_TIMEOUT)
 
         while True:
             if i < channel['next_no']:
@@ -187,7 +192,7 @@ if __name__ == '__main__':
         time_delta = time.time() - channel['heartbeat_time']
         # logger.debug(f'    heartbeat: {round(time_delta, 1)}s')
 
-        if time_delta > 45:
+        if time_delta > PROCESS_UNRESPONSE_TIMEOUT:
             # The heartbeat interval is larger than 45 seconds
             logger.warning(f"Process timeouts. Skip this page.")
             channel['next_no'] += 1
