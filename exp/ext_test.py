@@ -159,30 +159,17 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
         if i >= website_num or i >= end_no:
             break
 
-if __name__ == '__main__':
-    # Usage: python3 exp/ext_test.py result04 0 1000    
-    #   ("result03" is the table name,  "0" is the start number,  "1000" is the end number)
-    if len(sys.argv) != 4:
-        logger.error('Need provide the output table name, the start number, and the end number.')
-        exit(0)
-    if int(sys.argv[2]) >= int(sys.argv[3]):
-        logger.error('The end number should be larger than the start number.')
-        exit(0)
-
-    start_no = int(sys.argv[2])
-    end_no = int(sys.argv[3])
+def processMonitor(table_name, start_no, end_no):
     channel = multiprocessing.Manager().dict()  # Communication Channel
     channel['heartbeat_time'] = time.time()
     channel['next_no'] = start_no
     
-
-    category = sys.argv[1]
     WEBSITE_LIST_FILE = f'data/top-1m.17oct2024.csv'
     df = pd.read_csv(WEBSITE_LIST_FILE)
     website_num = df.shape[0]
 
     
-    p = multiprocessing.Process(target=updateAll, args=(df, category, int(sys.argv[2]), end_no, channel))
+    p = multiprocessing.Process(target=updateAll, args=(df, table_name, start_no, end_no, channel))
     p.start()
 
     while True:
@@ -202,13 +189,26 @@ if __name__ == '__main__':
             p.close()   # release resources
             channel['heartbeat_time'] = time.time()
             
-            p = multiprocessing.Process(target=updateAll, args=(df, category, start_no, end_no, channel))
+            p = multiprocessing.Process(target=updateAll, args=(df, table_name, start_no, end_no, channel))
             p.start()
         if channel['next_no'] >= website_num or channel['next_no'] >= end_no:
             break
 
     if p.is_alive():
         p.terminate()
+
+
+if __name__ == '__main__':
+    # Usage: python3 exp/ext_test.py result04 0 1000    
+    #   ("result03" is the table name,  "0" is the start number,  "1000" is the end number)
+    if len(sys.argv) == 4:
+        processMonitor(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+        logger.error('Need provide the output table name, the start number, and the end number.')
+        exit(0)
+    if int(sys.argv[2]) >= int(sys.argv[3]):
+        logger.error('The end number should be larger than the start number.')
+        exit(0)
+    
     conn.close()
 
 
