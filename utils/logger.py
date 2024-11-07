@@ -119,7 +119,7 @@ class getLogger:
         
         now = time.time()
         self.timelist.append(now)
-        if len(self.timelist) > 3:
+        if len(self.timelist) > 20:     # Track lastest 20 tasks
             self.timelist.pop(0)
         if len(self.timelist) > 1:
             speed = (now - self.timelist[0]) / (len(self.timelist) - 1)
