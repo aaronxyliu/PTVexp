@@ -223,7 +223,8 @@ if __name__ == '__main__':
     else:
         logger.error('Need provide the output table name, the start number, and the end number.')
         exit(0)
-
+    
+    logger.timecost()
     conn.close()
 
 

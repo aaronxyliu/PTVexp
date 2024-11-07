@@ -22,6 +22,8 @@ class getLogger:
         self.lefttime = -1
         self.timelist = []  # A queue storing the end time of last several tasks
 
+        self.program_start_time = time.time()
+
         caller_filename_full = inspect.stack()[1].filename 
         caller_filename_only = os.path.splitext(os.path.basename(caller_filename_full))[0]
 
@@ -125,6 +127,11 @@ class getLogger:
             self.lefttime = int(speed * left_no)
             if self.lefttime < 0:
                 self.lefttime = 0
+    
+    def timecost(self):
+        # Show the time cost of the program
+        cost = time.time() - self.program_start_time
+        self.info(f'Total time cost: {self.__convert_time_format__(cost)}')
     
     def __convert_time_format__(self, sec):
         sec = sec % (24 * 3600)
