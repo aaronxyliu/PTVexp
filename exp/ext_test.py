@@ -16,6 +16,7 @@ import time
 WEB_LOAD_TIMEOUT = 30
 PROCESS_UNRESPONSE_TIMEOUT = 60
 DETECTION_TIMEOUT = 25
+SKIP_EXISTED = False
 
 # http://hpdns.net/
 # old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
@@ -126,8 +127,10 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
                 i += 1
                 continue
 
-            # if not ExistUnknown(table_name, url):
-            #     continue
+            if SKIP_EXISTED:
+                res = conn.fetchone(f"SELECT `result` FROM {table_name} WHERE `rank`={rank}")
+                if res:
+                    continue
 
             result_str, detect_time, exception, pageurl, title = retrieveInfo(driver, url)
             logger.indent()
@@ -202,13 +205,25 @@ if __name__ == '__main__':
     # Usage: python3 exp/ext_test.py result04 0 1000    
     #   ("result03" is the table name,  "0" is the start number,  "1000" is the end number)
     if len(sys.argv) == 4:
+        if int(sys.argv[2]) >= int(sys.argv[3]):
+            logger.error('The end number should be larger than the start number.')
+            exit(0)
         processMonitor(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    elif len(sys.argv) == 2:
+        table_name = f'result{sys.argv[1]}'
+        table_no = int(sys.argv[1])
+        start_no = table_no * 10000
+        if table_name in conn.show_tables():
+            res = conn.fetchone(f"SELECT `rank` FROM {table_name} ORDER BY `id` DESC")
+            if res:
+                # Start from the last end
+                start_no = res[0] + 1
+        end_no = start_no + 10000
+        processMonitor(table_name, start_no, end_no)
+    else:
         logger.error('Need provide the output table name, the start number, and the end number.')
         exit(0)
-    if int(sys.argv[2]) >= int(sys.argv[3]):
-        logger.error('The end number should be larger than the start number.')
-        exit(0)
-    
+
     conn.close()
 
 

@@ -67,19 +67,19 @@ class getLogger:
                 lefttime_str = self.__convert_time_format__(self.lefttime)
             print(colors.fg.cyan, f'<<<< ESTIMATED LEFT TIME: {lefttime_str}  >>>>', colors.reset, end="\r")
 
-    def indent(self):
-        self.indent_num += 1
-
-    def outdent(self):
-        if self.indent_num > 0:
-            self.indent_num -= 1
-    
     def __write_to_file__(self, header: str, content):
         time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
         indent = ' ' * self.indent_num * 2
         outfile = open(self.filepath, "a")
         outfile.write(f'{time_str} {header} {indent}{str(content)}\n')
         outfile.close()
+
+    def indent(self):
+        self.indent_num += 1
+
+    def outdent(self):
+        if self.indent_num > 0:
+            self.indent_num -= 1
 
     def info(self, content=''):
         header = '[INFO]'
@@ -114,12 +114,11 @@ class getLogger:
     def leftTimeEstimator(self, left_no:int):
         # Used to show estimated time to complete the program
         # <left_no>: left number of tasks (assume that every single task will invoke this function)
-        
         self.enable_lefttime_indicator = True
         
         now = time.time()
         self.timelist.append(now)
-        if len(self.timelist) > 20:     # Track lastest 20 tasks
+        if len(self.timelist) > 50:     # Track lastest 50 tasks
             self.timelist.pop(0)
         if len(self.timelist) > 1:
             speed = (now - self.timelist[0]) / (len(self.timelist) - 1)
