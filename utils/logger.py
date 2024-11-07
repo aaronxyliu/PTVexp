@@ -3,6 +3,7 @@ import os
 import datetime
 import re
 import sys
+import time
 
 
 class getLogger:
@@ -15,6 +16,12 @@ class getLogger:
             return getLogger.global_logger
         
         self.indent_num = 0
+
+        # Used by the left time estimator
+        self.enable_lefttime_indicator = False
+        self.lefttime = -1
+        self.timelist = []  # A queue storing the end time of last several tasks
+
         caller_filename_full = inspect.stack()[1].filename 
         caller_filename_only = os.path.splitext(os.path.basename(caller_filename_full))[0]
 
@@ -36,15 +43,30 @@ class getLogger:
             index += 1
         
         self.filepath = os.path.join(logpath, logfile_name)
-        self.__write_to_file__(f'$> {' '.join(sys.argv)}\n')
+        outfile = open(self.filepath, "a")
+        outfile.write(f"$> {' '.join(sys.argv)}\n")
+        outfile.close()
 
         getLogger.global_logger = self
         
-        print(f'A new log file is created at: {self.filepath}')
+        self.info(f'A new log file is created at: {self.filepath}')
 
     def close(self):
         pass
-    
+
+    def __print__(self, headercolor, header:str, content:str):
+        print(' ' * 100, end='\r')   # Ensure covering the previous left time print
+
+        time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
+        indent = ' ' * self.indent_num * 2
+        print(colors.fg.green, time_str, headercolor, header, colors.reset, indent, content)
+
+        if self.enable_lefttime_indicator:
+            lefttime_str = 'N/A'
+            if self.lefttime >= 0:
+                lefttime_str = self.__convert_time_format__(self.lefttime)
+            print(colors.fg.cyan, f'<<<< ESTIMATED LEFT TIME: {lefttime_str}  >>>>', colors.reset, end="\r")
+
     def indent(self):
         self.indent_num += 1
 
@@ -52,49 +74,66 @@ class getLogger:
         if self.indent_num > 0:
             self.indent_num -= 1
     
-    def __write_to_file__(self, content: str):
+    def __write_to_file__(self, header: str, content):
+        time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
+        indent = ' ' * self.indent_num * 2
         outfile = open(self.filepath, "a")
-        outfile.write(content)
+        outfile.write(f'{time_str} {header} {indent}{str(content)}\n')
         outfile.close()
 
     def info(self, content=''):
-        time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
         header = '[INFO]'
-        indent = ' ' * self.indent_num * 2
-        print(colors.fg.green, time_str, colors.fg.green, header, colors.reset, indent, content)
-        self.__write_to_file__(f'{time_str} {header} {indent}{str(content)}\n')
+        self.__print__(colors.fg.green, header, content)
+        self.__write_to_file__(header, content)
     
     def debug(self, content=''):
-        outfile = open(self.filepath, "a")
-        time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
         header = '[DEBUG]'
-        print(colors.fg.green, time_str, colors.fg.blue, header, colors.reset, content)
-        self.__write_to_file__(f'{time_str} {header} {str(content)}\n')
+        self.__print__(colors.fg.blue, header, content) 
+        self.__write_to_file__(header, content)
     
     def warning(self, content=''):
-        time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
         header = '[WARNING]'
-        print(colors.fg.green, time_str,  colors.fg.orange, header, colors.reset, content)
-        self.__write_to_file__(f'{time_str} {header} {str(content)}\n')
+        self.__print__(colors.fg.orange, header, content) 
+        self.__write_to_file__(header, content)
     
     def error(self, content=''):
-        time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
         header = '[ERROR]'
-        print(colors.fg.green, time_str,  colors.fg.red, header, colors.reset, content)
-        self.__write_to_file__(f'{time_str} {header} {str(content)}\n')
+        self.__print__(colors.fg.red, header, content) 
+        self.__write_to_file__(header, content)
     
     def newline(self):
-        print('')
-        self.__write_to_file__(f'\n')
+        self.__print__(colors.fg.reset, '', '')
+        self.__write_to_file__('', '\n')
 
     def custom(self, title, content=''):
         # The title text is defined by user
-        time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
         header = f'[{str(title).upper()}]'
-        print(colors.fg.green, time_str, colors.fg.green, header, colors.reset, content)
-        self.__write_to_file__(f'{time_str} {header} {str(content)}\n')
-
-
+        self.__print__(colors.fg.green, header, content)
+        self.__write_to_file__(header, content)
+    
+    def leftTimeEstimator(self, left_no:int):
+        # Used to show estimated time to complete the program
+        # <left_no>: left number of tasks (assume that every single task will invoke this function)
+        
+        self.enable_lefttime_indicator = True
+        
+        now = time.time()
+        self.timelist.append(now)
+        if len(self.timelist) > 3:
+            self.timelist.pop(0)
+        if len(self.timelist) > 1:
+            speed = (now - self.timelist[0]) / (len(self.timelist) - 1)
+            self.lefttime = int(speed * left_no)
+            if self.lefttime < 0:
+                self.lefttime = 0
+    
+    def __convert_time_format__(self, sec):
+        sec = sec % (24 * 3600)
+        hour = sec // 3600
+        sec %= 3600
+        min = sec // 60
+        sec %= 60
+        return "%02d:%02d:%02d" % (hour, min, sec) 
 
 
 

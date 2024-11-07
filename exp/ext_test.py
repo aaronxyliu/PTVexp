@@ -39,7 +39,7 @@ def retrieveInfo(driver, url):
         # The selenium title fetching is not stable
         webTitle = driver.title
         webtitle = str.lower(driver.title)
-        print(webtitle)
+        logger.debug(f"    Title: {webtitle}")
         if '404' in webtitle or '403' in webtitle or 'error' in webtitle:
             logger.warning(f'Page blocked: {webtitle}.')
             return '[]', -1, f'Page blocked: {webtitle}', cur_url, webTitle
@@ -125,8 +125,11 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
             #     continue
 
             result_str, detect_time, exception, pageurl, title = retrieveInfo(driver, url)
-            print(result_str)
-            print(detect_time)
+            logger.indent()
+            logger.debug(result_str)
+            logger.debug(detect_time)
+            logger.outdent()
+
             conn.update_otherwise_insert(table_name\
                 , ['rank', 'result', 'time', 'dscp', 'pageurl', 'title']\
                 , (rank, result_str, detect_time, exception, pageurl[:400], title[:900])\
@@ -134,6 +137,7 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
 
             
             logger.info(f'Rank {i}: {url} finished. Saved to the table `{table_name}`. ({round((i - start_no) * 100 / (end_no - start_no), 1)}%)')
+            logger.leftTimeEstimator(end_no - i)
             
             i += 1
 
@@ -154,10 +158,10 @@ if __name__ == '__main__':
     # Usage: python3 exp/ext_test.py result04 0 1000    
     #   ("result03" is the table name,  "0" is the start number,  "1000" is the end number)
     if len(sys.argv) != 4:
-        logger.info('Need provide the output table name, the start number, and the end number.')
+        logger.error('Need provide the output table name, the start number, and the end number.')
         exit(0)
     if int(sys.argv[2]) >= int(sys.argv[3]):
-        logger.info('The end number should be larger than the start number.')
+        logger.error('The end number should be larger than the start number.')
         exit(0)
 
     start_no = int(sys.argv[2])
@@ -181,11 +185,11 @@ if __name__ == '__main__':
         if not p.is_alive():
             break
         time_delta = time.time() - channel['heartbeat_time']
-        print(time_delta)
+        # logger.debug(f'    heartbeat: {round(time_delta, 1)}s')
 
         if time_delta > 45:
             # The heartbeat interval is larger than 45 seconds
-            logger.info(f"Process timeouts. Skip this page.")
+            logger.warning(f"Process timeouts. Skip this page.")
             channel['next_no'] += 1
             p.terminate()
 
