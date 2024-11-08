@@ -102,7 +102,7 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
         PRIMARY KEY (`id`)
         ''')
     website_num = df.shape[0]
-    i = 0
+    i = 1
     while True:
         opt = webdriver.ChromeOptions()
         opt.add_argument("--headless")
@@ -120,8 +120,8 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
             if i >= website_num:
                 break
             
-            rank = df.loc[i, 'rank']
-            url = df.loc[i, 'url']
+            rank = df.loc[i - 1, 'rank']
+            url = df.loc[i - 1, 'url']
             
             if url in BLACKLIST:
                 i += 1

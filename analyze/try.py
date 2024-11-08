@@ -4,7 +4,7 @@ import time
 # print(time.strftime("%H:%M:%S", 1206))
 for x in range (0,5):  
     b = "Loading" + "." * x
-    print ( f'{x}' * (10-x), end="\r")
+    print ( f'{x}' * (10-x) + '\n' + f'{x}' * (10-x), end="\r")
     time.sleep(1)
     print ( ' ' * 15, end="\r")
 

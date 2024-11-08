@@ -21,6 +21,7 @@ class getLogger:
         self.enable_lefttime_indicator = False
         self.lefttime = -1
         self.timelist = []  # A queue storing the end time of last several tasks
+        self.speed = 0  # Current speed of the tasks
 
         self.program_start_time = time.time()
 
@@ -67,7 +68,7 @@ class getLogger:
             lefttime_str = 'N/A'
             if self.lefttime >= 0:
                 lefttime_str = self.__convert_time_format__(self.lefttime)
-            print(colors.fg.cyan, f'<<<< ESTIMATED LEFT TIME: {lefttime_str}  >>>>', colors.reset, end="\r")
+            print(colors.fg.cyan, f'<<< ESTIMATED LEFT TIME: {lefttime_str}  ( SPEED: {round(self.speed, 2)} sec/task ) >>>', colors.reset, end="\r")
 
     def __write_to_file__(self, header: str, content):
         time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
@@ -123,8 +124,8 @@ class getLogger:
         if len(self.timelist) > 50:     # Track lastest 50 tasks
             self.timelist.pop(0)
         if len(self.timelist) > 1:
-            speed = (now - self.timelist[0]) / (len(self.timelist) - 1)
-            self.lefttime = int(speed * left_no)
+            self.speed = (now - self.timelist[0]) / (len(self.timelist) - 1)
+            self.lefttime = int(self.speed * left_no)
             if self.lefttime < 0:
                 self.lefttime = 0
     
