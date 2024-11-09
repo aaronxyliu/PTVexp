@@ -213,12 +213,13 @@ if __name__ == '__main__':
         table_name = f'result{sys.argv[1]}'
         table_no = int(sys.argv[1])
         start_no = table_no * 10000
+        end_no = (table_no + 1) * 10000
         if table_name in conn.show_tables():
             res = conn.fetchone(f"SELECT `rank` FROM {table_name} ORDER BY `id` DESC")
             if res:
                 # Start from the last end
                 start_no = res[0] + 1
-        end_no = start_no + 10000
+        
         processMonitor(table_name, start_no, end_no)
     else:
         logger.error('Need provide the output table name, the start number, and the end number.')
