@@ -1,7 +1,7 @@
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 SV = ultraimport('__dir__/../utils/standard_version.py').StandardVersion
-conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
+conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 conn2 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Releases')
 Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 import sys
@@ -23,7 +23,7 @@ def average_date(dates: list) -> str:
     return str(mean_date)[:10]
 
 def analyze(table_name):
-    res = conn.selectAll(table_name, ['result', 'time', 'id'])
+    res = conn.selectAll(table_name, ['result', 'time', 'rank'])
     lib_tablename_list = conn2.show_tables()
 
     no_match_dist = Dist()
@@ -37,17 +37,19 @@ def analyze(table_name):
     case3 = 0
     case4 = 0
 
-    old_id = 0
+    # old_rank = 0
+    i = 0
     for entry in res:
+        i += 1
         time = entry[1]
         if time < 0:
             # Error
             continue
 
         libs = json.loads(entry[0])
-        id = entry[2]
+        rank = entry[2]
 
-        if id < START_RANK:
+        if rank < START_RANK:
             continue
 
         
@@ -143,11 +145,12 @@ def analyze(table_name):
             if lodash and underscore:
                 underscore['date'] = lodash['date']
                         
-            conn.update(table_name, ['result'], (json.dumps(libs),), f"`id`='{id}'")
+            conn.update(table_name, ['result'], (json.dumps(libs),), f"`rank`={rank}")
 
-        if id - old_id >= 100:
-            logger.info(f'{id} finished.')
-            old_id = id
+        logger.leftTimeEstimator(len(res) - i)
+        # if rank - old_rank >= 100:
+        #     logger.info(f'{rank} finished.')
+        #     old_rank = rank
 
     logger.info(f'# Libs: {lib_cnt}')
     logger.info(f'# Versions: {version_cnt}')
@@ -169,5 +172,6 @@ if __name__ == '__main__':
         logger.info('Need provide the detection result table name.')
     elif len(sys.argv) == 2:
         analyze(sys.argv[1])
+    logger.timecost()
     conn.close()
     conn2.close()

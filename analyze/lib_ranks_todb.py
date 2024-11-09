@@ -2,7 +2,7 @@
 
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
-conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
+conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 conn2 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Libraries')
 conn3 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Statistics')
 conn4 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Releases')
@@ -10,8 +10,9 @@ Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 import json
 
 URL_BLACKLIST = []
-DETECTION_RESULT_TABLE = 'result_100k'
-RANK_SAVE_TABLE = 'libs_100k'
+SUFFIX = '1M'
+DETECTION_RESULT_TABLE = 'result_' + SUFFIX
+RANK_SAVE_TABLE = 'libs_' + SUFFIX
 
 
 def basicInfo(libname):

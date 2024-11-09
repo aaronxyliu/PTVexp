@@ -18,10 +18,7 @@ class getLogger:
         self.indent_num = 0
 
         # Used by the left time estimator
-        self.enable_lefttime_indicator = False
-        self.lefttime = -1
-        self.timelist = []  # A queue storing the end time of last several tasks
-        self.speed = 0  # Current speed of the tasks
+        self.leftTimeEstimatorReset()
 
         self.program_start_time = time.time()
 
@@ -53,22 +50,36 @@ class getLogger:
         getLogger.global_logger = self
         
         self.info(f'A new log file is created at: {self.filepath}')
+    
+
+    def leftTimeEstimatorReset(self):
+        self.enable_lefttime_indicator = False
+        self.lefttime = -1
+        self.timelist = []  # A queue storing the end time of last several tasks
+        self.speed = 0  # Current speed of the tasks
+        self.last_print_time = 0  # The time of the last print
+
 
     def close(self):
         pass
 
-    def __print__(self, headercolor, header:str, content:str):
+
+    def __print__(self, headercolor, header:str, content:str, end='\n'):
         print(' ' * 100, end='\r')   # Ensure covering the previous left time print
 
         time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
         indent = ' ' * self.indent_num * 2
-        print(colors.fg.green, time_str, headercolor, header, colors.reset, indent, content)
+        print(colors.fg.green, time_str, headercolor, header, colors.reset, indent, content, end=end)
 
         if self.enable_lefttime_indicator:
             lefttime_str = 'N/A'
             if self.lefttime >= 0:
                 lefttime_str = self.__convert_time_format__(self.lefttime)
             print(colors.fg.cyan, f'<<< ESTIMATED LEFT TIME: {lefttime_str}  ( SPEED: {round(self.speed, 2)} sec/task ) >>>', colors.reset, end="\r")
+        
+        # Record the print time
+        self.last_print_time = time.time()
+
 
     def __write_to_file__(self, header: str, content):
         time_str = datetime.datetime.now().strftime("%d.%b %Y %H:%M:%S")
@@ -105,7 +116,7 @@ class getLogger:
         self.__write_to_file__(header, content)
     
     def newline(self):
-        self.__print__(colors.fg.reset, '', '')
+        self.__print__(colors.reset, '', '')
         self.__write_to_file__('', '\n')
 
     def custom(self, title, content=''):
@@ -117,7 +128,11 @@ class getLogger:
     def leftTimeEstimator(self, left_no:int):
         # Used to show estimated time to complete the program
         # <left_no>: left number of tasks (assume that every single task will invoke this function)
-        self.enable_lefttime_indicator = True
+
+        if left_no <= 0:
+            self.enable_lefttime_indicator = False
+        else:
+            self.enable_lefttime_indicator = True
         
         now = time.time()
         self.timelist.append(now)
@@ -128,6 +143,10 @@ class getLogger:
             self.lefttime = int(self.speed * left_no)
             if self.lefttime < 0:
                 self.lefttime = 0
+        if now - self.last_print_time > 1:
+            # If no print in the last 1 second, 
+            # do an empty print to refresh the left time display
+            self.__print__(colors.reset, '', '', end='') 
     
     def timecost(self):
         # Show the time cost of the program

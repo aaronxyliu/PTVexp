@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
-conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
+conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 
 import sys
@@ -25,7 +25,9 @@ def analyze(table_name, web_num_limit=1000000):
     lib_dist = Dist()
     lib_date_dist = Dist()
 
+    i = 0
     for entry in res:
+        i += 1
         time = entry[1]
         if time < 0:
             # Error
@@ -66,6 +68,8 @@ def analyze(table_name, web_num_limit=1000000):
                     date_dist.add(year)
             if len(datelist) > 0:
                 date_dist_per_website.add(date_dist_per_website.avgDate(datelist)[:4])
+        
+        logger.leftTimeEstimator(len(res) - i)
 
     logger.info(f'Website number: {web_cnt}')
     logger.info(f'Library occurrence: {lib_occurrence_cnt}')
@@ -76,10 +80,10 @@ def analyze(table_name, web_num_limit=1000000):
     logger.info(avg_release_time_dist.avgDateDict('Average Release Time of Each Library'))
     # lib_dist.showplot('Most Frequently Used Libraries', xlabel='library', ylabel='# occurrences', sortByFreq=True, head=20)
     # lib_date_dist.showplot('Library Occurrence Release Time Distribution', xlabel='year', ylabel='# library occurrences')
-    date_dist.showplot('Library Release Year Distribution on Top 10k Websites', xlabel='year', ylabel='# library occurrences')
+    # date_dist.showplot('Library Release Year Distribution on Top 10k Websites', xlabel='year', ylabel='# library occurrences')
     
     
-    # date_dist_per_website.showplot('Library Release Year Distribution on Top 10k Websites', xlabel='year', ylabel='# websites')
+    date_dist_per_website.showplot('Library Release Year Distribution on TOP 900K-1M Websites', xlabel='year', ylabel='# websites', sortByX=True, head=10)
 
     # new_dist = Dist()
     # for pair in avg_release_time_dist.avgDateDict().items():
@@ -98,4 +102,5 @@ if __name__ == '__main__':
         analyze(sys.argv[1])
     elif len(sys.argv) == 3:
         analyze(sys.argv[1], int(sys.argv[2]))
+    logger.timecost()
     conn.close()

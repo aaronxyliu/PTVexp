@@ -107,15 +107,19 @@ class ConnDatabase:
         return res
  
 
-    def selectAll(self, table_name: str, fields: list, condition: str = None) -> list:
+    def selectAll(self, table_name: str, fields: list, condition: str = None, sortBy: str = None, descending:bool = False) -> list:
         if len(fields) == 0:
             return []
         fields_str = "`, `".join(fields)
+        statement = f"SELECT `{fields_str}` FROM `{table_name}`;"
         if condition:
-            self.cursor.execute(f"SELECT `{fields_str}` FROM `{table_name}` WHERE {condition};")
-        else:
-            self.cursor.execute(f"SELECT `{fields_str}` FROM `{table_name}`;")
-        res = self.cursor.fetchall()
+            statement = f"{statement} WHERE `{condition}`"
+        if sortBy:
+            statement = f"{statement} ORDER BY `{sortBy}`"
+            if descending:
+                statement = f"{statement} DESC"
+        
+        res = self.fetchall(statement)
         return res
     
 
