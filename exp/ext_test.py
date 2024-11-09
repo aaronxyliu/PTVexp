@@ -44,6 +44,8 @@ def retrieveInfo(driver, url):
     try:
         # The selenium title fetching is not stable
         webTitle = driver.title
+        if webTitle == None:
+            webTitle = ''
         webtitle = str.lower(driver.title)
         logger.debug(f"    Title: {webtitle}")
         if '404' in webtitle or '403' in webtitle or 'error' in webtitle:
