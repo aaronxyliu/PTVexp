@@ -119,7 +119,7 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
             if i < channel['next_no']:
                 i += 1
                 continue
-            if i >= website_num:
+            if i >= website_num or i >= end_no:
                 break
             
             rank = df.loc[i - 1, 'rank']
