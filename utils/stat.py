@@ -67,15 +67,31 @@ class Distribution:
                             .mean()
                             .astype('datetime64[s]'))
         return str(mean_date)[:4]
+
+    def mean(self, processFunc = len) -> float:
+        if len(self.dict) == 0:
+            return 0
+        values = []
+        for pair in self.dict.items():
+            values.append(processFunc(pair[1]))
+        # Calculate the mean for a list of values
+        return np.mean(values)
     
-    def showplot(self, title: str = None, processFunc = None, xlabel: str = None, ylabel: str = None, sortByX: bool = False, sortByY: bool = False, head: int = -1, partition: int = -1, yrange: list=None, dateY:bool = False, strX:bool = False):
+    def variance(self, processFunc = len) -> float:
+        if len(self.dict) == 0:
+            return 0
+        values = []
+        for pair in self.dict.items():
+            values.append(processFunc(pair[1]))
+        # Calculate the variance for a list of values
+        return np.var(values)
+    
+    def showplot(self, title: str = None, processFunc = len, xlabel: str = None, ylabel: str = None, sortByX: bool = False, sortByY: bool = False, head: int = -1, partition: int = -1, xrange: list=None, yrange: list=None, dateY:bool = False, strX:bool = False, hist:bool = False):
         # "processFunc' must be a function that receives a list and returns a number
         # 'head' specify only display several items in the front
         # 'partition' makes data grouped by the X label
-
         if len(self.dict) == 0:
             return
-        
         show_dict = self.dict.copy()
         if partition > 0:
             sortByX = True
@@ -106,11 +122,8 @@ class Distribution:
         
 
         for pair in show_dict.items():
-            if not processFunc:
-                # Calculate the frequency by default
-                show_dict[pair[0]] = len(pair[1])
-            else:
-                show_dict[pair[0]] = processFunc(pair[1])
+            # Calculate the frequency by default
+            show_dict[pair[0]] = processFunc(pair[1])
         
 
         # Sort by X or Y
@@ -137,11 +150,14 @@ class Distribution:
 
         fig, ax = plt.subplots(figsize=(6.2, 3))
 
-        plt.bar(x=range(len(x_list)), height=y_list, width=0.9,
-            color="#F5CCCC",
-            edgecolor="#C66667")
+        if hist:
+            plt.hist(y_list, bins=10, color="#F5CCCC", edgecolor="#C66667", range=(0, 10))
+        else:
+            plt.bar(x=range(len(x_list)), height=y_list, width=0.9,
+                color="#F5CCCC",
+                edgecolor="#C66667")
+            plt.xticks(range(len(x_list)), x_list)
 
-        plt.xticks(range(len(x_list)), x_list)
         plt.xlabel(xlabel or "Item")
         plt.ylabel(ylabel or "Frequency")
 

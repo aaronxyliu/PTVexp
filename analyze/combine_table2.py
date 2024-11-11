@@ -5,19 +5,27 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
-conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
-conn2 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
+conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 import pandas as pd
 
-OUTPUT_TABLE = 'result_1M'
-WEBSITE_NUM_LIMIT = 100000
+NO = 30
+
+OUTPUT_TABLE = f'result_{NO}0k'
 
 
 if __name__ == '__main__':
-    conn2.combine_tables(OUTPUT_TABLE, ['result90', 'result92', 'result95', 'result98'])
+    tables = conn.show_tables()
+
+    combine_tables = []
+    for index in range(NO - 10, NO):
+        if f'result{index}' in tables:
+            combine_tables.append(f'result{index}')
+    print(combine_tables)
+
+
+    conn.combine_tables(OUTPUT_TABLE, combine_tables)
 
     conn.close()
-    conn2.close()
 
 
 

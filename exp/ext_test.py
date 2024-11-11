@@ -140,9 +140,10 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
             logger.debug(detect_time)
             logger.outdent()
 
+            print(exception)
             conn.update_otherwise_insert(table_name\
                 , ['rank', 'result', 'time', 'dscp', 'pageurl', 'title']\
-                , (rank, result_str, detect_time, exception, pageurl[:400], title[:900])\
+                , (rank, result_str, detect_time, exception[:400], pageurl[:400], title[:900])\
                 , 'url', url)
 
             

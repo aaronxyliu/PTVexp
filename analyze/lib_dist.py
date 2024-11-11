@@ -1,6 +1,6 @@
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
-conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
+conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 
 import sys
@@ -77,8 +77,8 @@ def analyze(table_name):
     logger.info('== underscore ==')
     logger.info(underscore_versions)
 
-    logger.info('=====')
-    logger.info(len(lib_dist.dict['menards.com']))
+    # logger.info('=====')
+    # logger.info(len(lib_dist.dict['menards.com']))
 
     lib_dist.showplot('Websites Containing Many Libraries', xlabel='url', ylabel='# loaded libraries', sortByY=True, head=15)
 
