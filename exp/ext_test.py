@@ -21,7 +21,7 @@ SKIP_EXISTED = False
 # http://hpdns.net/
 # old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
 # BLACKLIST = old_df['Domain'].tolist()
-BLACKLIST = []
+BLACKLISTRANK = [601302]
 LARGE_INT = 1000000000
 
 def retrieveInfo(driver, url):
@@ -73,7 +73,10 @@ def retrieveInfo(driver, url):
         return '[]', -1, 'detection error', cur_url, webTitle   # detection timeout
 
     detect_time_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-time"]').get_attribute("content")
-    detect_time = float(detect_time_str)
+    try:
+        detect_time = float(detect_time_str)
+    except:
+        detect_time = 0
 
     return result_str, detect_time, '', cur_url, webTitle
 
@@ -125,7 +128,7 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
             rank = df.loc[i - 1, 'rank']
             url = df.loc[i - 1, 'url']
             
-            if url in BLACKLIST:
+            if rank in BLACKLISTRANK:
                 i += 1
                 continue
 
