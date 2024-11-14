@@ -154,11 +154,10 @@ class getLogger:
         self.info(f'Total time cost: {self.__convert_time_format__(cost)}')
     
     def __convert_time_format__(self, sec):
-        sec = sec % (24 * 3600)
         hour = sec // 3600
-        sec %= 3600
+        sec -= 3600 * hour
         min = sec // 60
-        sec %= 60
+        sec -= 60 * min
         return "%02d:%02d:%02d" % (hour, min, sec) 
 
 
