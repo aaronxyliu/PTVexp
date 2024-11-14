@@ -114,6 +114,7 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
         user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'    
         opt.add_argument(f'user-agent={user_agent}')
         opt.add_extension(f'bin/PTV.crx')
+        opt.accept_insecure_certs = True
         service = webdriver.ChromeService(executable_path="./bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=opt)
         driver.set_page_load_timeout(WEB_LOAD_TIMEOUT)
@@ -211,10 +212,14 @@ if __name__ == '__main__':
     # Usage: python3 exp/ext_test.py result04 0 1000    
     #   ("result03" is the table name,  "0" is the start number,  "1000" is the end number)
     if len(sys.argv) == 4:
+        # Manurally set the testing websites rank range
         if int(sys.argv[2]) >= int(sys.argv[3]):
             logger.error('The end number should be larger than the start number.')
             exit(0)
         processMonitor(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    elif len(sys.argv) == 3:
+        # Only test 1 website with specific rank
+        processMonitor(sys.argv[1], int(sys.argv[2]), int(sys.argv[2]) + 1)
     elif len(sys.argv) == 2:
         table_name = f'result{sys.argv[1]}'
         table_no = int(sys.argv[1])
