@@ -2,12 +2,25 @@ import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 import time
 
+# Import necessary libraries
+import plotly.express as px
+import pandas as pd
 
-def test():
-    for i in range(10):
-        time.sleep(1.1)
-        logger.leftTimeEstimator(9 - i)
+# Load the dataset provided by Plotly Express
+df = px.data.tips()
 
-if __name__ == '__main__':
-    test()
-    logger.close()
+# Display the first five rows of the data
+print(df.head())
+
+# Create the density heatmap plot
+fig = px.density_heatmap(df, x='total_bill', y='tip')
+
+# Customize the plot
+fig.update_layout(
+    title="Density Heatmap Plot",
+    xaxis_title="Total Bill",
+    yaxis_title="Tip"
+)
+
+# Display the plot
+fig.show()

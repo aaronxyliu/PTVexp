@@ -68,23 +68,29 @@ class Distribution:
                             .astype('datetime64[s]'))
         return str(mean_date)[:4]
 
-    def mean(self, processFunc = len) -> float:
+    def mean(self, processFunc = len, isDate = False) -> float:
         if len(self.dict) == 0:
             return 0
         values = []
         for pair in self.dict.items():
             values.append(processFunc(pair[1]))
         # Calculate the mean for a list of values
-        return np.mean(values)
+        if isDate:
+            return self.avgDate(values)
+        else:
+            return np.mean(values)
     
-    def variance(self, processFunc = len) -> float:
+    def variance(self, processFunc = len, isDate = False) -> float:
         if len(self.dict) == 0:
             return 0
         values = []
         for pair in self.dict.items():
             values.append(processFunc(pair[1]))
         # Calculate the variance for a list of values
-        return np.var(values)
+        if isDate:
+            return np.array(values, dtype='datetime64[s]').view('i8').var()
+        else:
+            return np.var(values)
     
     def showplot(self, title: str = None, processFunc = len, xlabel: str = None, ylabel: str = None, sortByX: bool = False, sortByY: bool = False, head: int = -1, partition: int = -1, xrange: list=None, yrange: list=None, dateY:bool = False, strX:bool = False, hist:bool = False):
         # "processFunc' must be a function that receives a list and returns a number
