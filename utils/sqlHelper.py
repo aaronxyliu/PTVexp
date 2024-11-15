@@ -107,18 +107,19 @@ class ConnDatabase:
         return res
  
 
-    def selectAll(self, table_name: str, fields: list, condition: str = None, sortBy: str = None, descending:bool = False) -> list:
+    def selectAll(self, table_name: str, fields: list, condition: str = None, limit: int = -1, sortBy: str = None, descending:bool = False) -> list:
         if len(fields) == 0:
             return []
         fields_str = "`, `".join(fields)
-        statement = f"SELECT `{fields_str}` FROM `{table_name}`;"
+        statement = f"SELECT `{fields_str}` FROM `{table_name}`"
         if condition:
             statement = f"{statement} WHERE `{condition}`"
         if sortBy:
             statement = f"{statement} ORDER BY `{sortBy}`"
             if descending:
                 statement = f"{statement} DESC"
-        
+        if limit > 0:
+            statement = f"{statement} LIMIT {limit}"
         res = self.fetchall(statement)
         return res
     

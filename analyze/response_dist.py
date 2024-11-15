@@ -6,7 +6,7 @@ Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 import json
 import numpy as np
 
-TABLE_NAME = 'result_200k'
+TABLE_NAME = 'result_300k'
 
 def analyze():
     res = conn.selectAll(TABLE_NAME, ['rank', 'time', 'dscp'])
@@ -37,10 +37,14 @@ def analyze():
             response_dist.add('server error', rank)
             other_dict[rank] = dscp
     # print(other_dict)
+
+    logger.info(100000 - response_dist.size())
+    logger.info(response_dist.freqDict("Response Types"))
+
     response_dist.showplot('The responsiveness and reported HTTP status code across the lists.', xlabel='type', ylabel='# webs')
 
-
 if __name__ == '__main__':
+    logger.custom('Websites Number', conn.entry_count(TABLE_NAME))
     analyze()
     logger.timecost()
     conn.close()

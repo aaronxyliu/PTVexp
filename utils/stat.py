@@ -8,12 +8,12 @@ class Distribution:
     def __init__(self) -> None:
         self.dict = {}  # Store item and its frequency pair
         
-    def add(self, item: str, value: str = ''):
-        item_str = str(item)
-        if item_str not in self.dict:
-            self.dict[item_str] = [value]
+    def add(self, item, value: str = ''):
+        # item_str = str(item)
+        if item not in self.dict:
+            self.dict[item] = [value]
         else:
-            self.dict[item_str].append(value)
+            self.dict[item].append(value)
 
     def size(self):
         # The sum of frequency
