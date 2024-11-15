@@ -8,7 +8,7 @@ logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 import pandas as pd
 
-NO = 50
+NO = 60
 
 OUTPUT_TABLE = f'result_{NO}0k'
 

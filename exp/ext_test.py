@@ -21,7 +21,7 @@ SKIP_EXISTED = False
 # http://hpdns.net/
 # old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
 # BLACKLIST = old_df['Domain'].tolist()
-BLACKLISTRANK = [601302]
+BLACKLISTRANK = [601302, 633941]
 LARGE_INT = 1000000000
 
 def retrieveInfo(driver, url):
