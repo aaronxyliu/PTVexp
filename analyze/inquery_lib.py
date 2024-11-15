@@ -1,6 +1,6 @@
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
-conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection')
+conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 conn2 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Libraries')
 conn3 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Releases')
 Dist = ultraimport('__dir__/../utils/stat.py').Distribution
@@ -10,15 +10,16 @@ import json
 import math
 
 URL_BLACKLIST = []
-DETECTION_RESULT_TABLE = 'result04'
+DETECTION_RESULT_TABLE = 'result_300k'
 
 def basicInfo(libname):
     logger.info('=== BASIC INFORMATION ===')
     logger.indent()
     res = conn2.fetchone(f"SELECT `star`, `latest version`, `cdnjs` FROM `libs_cdnjs` WHERE `libname`='{libname}'")
-    logger.info(f'Gihub Star: {res[0]}')
-    logger.info(f'Latest Detectable Version: {res[1]}')
-    logger.info(f'Cdnjs URL: {res[2]}')
+    if res:
+        logger.info(f'Gihub Star: {res[0]}')
+        logger.info(f'Latest Detectable Version: {res[1]}')
+        logger.info(f'Cdnjs URL: {res[2]}')
     logger.outdent()
     logger.newline()
 
@@ -42,8 +43,9 @@ def analyze(libname):
     logger.indent()
     res = conn.selectAll(DETECTION_RESULT_TABLE, ['result', 'time', 'url', 'rank'])
 
-    year_dist = Dist()
     rank_dist = Dist()
+    year_dist = Dist()
+    version_len_dist = Dist()
     date_list = []
     web_cnt = 0
     lib_cnt = 0
@@ -52,10 +54,11 @@ def analyze(libname):
 
     for entry in res:
         time = entry[1]
+        url = entry[2]
+        rank = entry[3]
         if time < 0:
             # Error
             continue
-        url = entry[2]
         if url in URL_BLACKLIST:
             continue
         web_cnt += 1
@@ -67,29 +70,31 @@ def analyze(libname):
 
                 url_list.append(url)
 
-                version = lib['version']
+                versions = lib['version']
+                version_len_dist.add(len(versions))
                 date = lib['date']
                 
-                rank_base = math.floor(float(entry[3])/4000)
                 lib_cnt += 1
 
                 if date and len(date) >= 4:
                     date_list.append(date)
+                    rank_dist.add(rank, date)
                     year = date[:4]
-                    rank_dist.add(f'{rank_base}. {rank_base * 4}k ~ {(rank_base+1)*4}k', date)
-                    year_dist.add(year, version)
+                    year_dist.add(year)
                 else:
                     no_date_cnt += 1
                 break
 
     logger.info(f'# total websites: {web_cnt}')
     logger.info(f'# websites containing {libname}: {lib_cnt} ({round(lib_cnt * 100 / web_cnt, 1)}%)')
-    logger.info(url)
+    logger.info(url_list[:20])
     logger.info(f'# no date: {no_date_cnt}')
-    logger.info(f'avg. release date in websites: {year_dist.avgDate(date_list)}')
-    # year_dist.showplot(f'Version Year Distribution of {libname}', xlabel='year', ylabel='# occurrences')
+    logger.info(f'avg. release date in websites: {rank_dist.avgDate(date_list)}')
+    # year_dist.showplot(f'Version Year Distribution of {libname}', xlabel='year', ylabel='# occurrences', sortByX=True)
+    version_len_dist.showplot(f'Version Range Length Distribution of {libname}', xlabel='length', ylabel='# occurrences', sortByX=True)
+
     # rank_dist.showplot(f'Frequency of {libname} on Different Ranks of Websites', xlabel='website rank', ylabel='# occurrences')
-    logger.info(rank_dist.avgDateDict(f'Average Release Date of {libname} on Different Ranks of Websites'))
+    # logger.info(rank_dist.avgDateDict(f'Average Release Date of {libname} on Different Ranks of Websites'))
 
     logger.outdent()
     logger.newline()
