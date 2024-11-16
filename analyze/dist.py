@@ -6,10 +6,11 @@ Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 
 import json
 import numpy as np
+globalv = ultraimport('__dir__/../utils/globalv.py')
 
 URL_BLACKLIST = ['partyrock.aws']
-WEBSITE_RANK_RANGE = (45 * 10000, 50 * 10000)
-SUFFIX = '500k'
+WEBSITE_RANK_RANGE = (95 * 10000, 100 * 10000)
+SUFFIX = '1M'
 DETECTION_RESULT_TABLE = 'result_' + SUFFIX
 
 def analyze(table_name, lib_blacklist):
@@ -18,6 +19,8 @@ def analyze(table_name, lib_blacklist):
     freq_dist = Dist()
     web_date_dist = Dist()
     diversity_dist = Dist()
+
+    release_num_dict = globalv.releaseNumInfo()
 
     i = 0
     for entry in res:
@@ -42,6 +45,7 @@ def analyze(table_name, lib_blacklist):
             dates = []
             for lib in libs:
                 libname = lib['libname']
+                versions = lib['version']
                 if libname in lib_blacklist:
                     in_blacklist += 1
                     continue
@@ -51,8 +55,20 @@ def analyze(table_name, lib_blacklist):
                     continue
                 date = lib['date']
                 if date and len(date) >= 4:
+                    
+                    # Check whehter the library is fine-grained versioning
+                    if not versions or len(versions) > 10:
+                        continue
+                    if len(versions) == 0:
+                        if libname not in release_num_dict:
+                            continue
+                        elif release_num_dict[libname] > 10:
+                            continue
+
                     avg_release_time_dist.add(rank, date)
+                    web_date_dist.add(rank, date)
                     dates.append(date)
+
             if len(dates) > 0:
                 web_date_dist.add(rank, web_date_dist.avgDate(dates))
             freq_dist.add(rank, len(libs) - in_blacklist)

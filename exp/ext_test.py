@@ -11,12 +11,14 @@ import sys
 import json
 import multiprocessing
 import time
+globalv = ultraimport('__dir__/../utils/globalv.py')
 
 
 WEB_LOAD_TIMEOUT = 30
 PROCESS_UNRESPONSE_TIMEOUT = 60
 DETECTION_TIMEOUT = 25
 SKIP_EXISTED = False
+APPLY_PTV_UPDATE = False # Only detect websites containing libraries that have updates in PTV
 
 # http://hpdns.net/
 # old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
@@ -80,17 +82,25 @@ def retrieveInfo(driver, url):
 
     return result_str, detect_time, '', cur_url, webTitle
 
-def ExistUnknown(table_name: str, url: str) -> bool:
-    res = conn.fetchone(f"SELECT `result` FROM {table_name} WHERE `url`='{url}'")
+def ExistUpdatedLib(table_name: str, rank: int) -> bool:
+    res = conn.selectOne(table_name, ['result'], f"`rank`='{rank}'")
     if not res:
-        return True
+        return False
     libs = json.loads(res[0])
-    if not libs or len(libs) == 0:
-        return True
-    for lib in libs:
-        version = lib['version']
-        if not version and len(version) == 0:
-            return True
+    if libs:
+        if isinstance(libs, str):
+            libs = json.loads(libs)
+
+        if isinstance(libs, dict):
+            # Convert dictionary to list    example: https://kuruma-ex.jp/
+            new_libs = []
+            for _, val in libs.items():
+                new_libs.append(val)
+            libs = new_libs
+        
+        for lib in libs:
+            if lib['libname'] in globalv.LIBS_WITH_UPDATE:
+                return True
         
     return False
 
@@ -136,7 +146,14 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
             if SKIP_EXISTED:
                 res = conn.fetchone(f"SELECT `result` FROM {table_name} WHERE `rank`={rank}")
                 if res:
+                    i += 1
                     continue
+            
+            if APPLY_PTV_UPDATE:
+                if not ExistUpdatedLib(table_name, rank):
+                    i += 1
+                    continue
+                
 
             result_str, detect_time, exception, pageurl, title = retrieveInfo(driver, url)
             logger.indent()
@@ -146,12 +163,12 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
 
             print(exception)
             conn.update_otherwise_insert(table_name\
-                , ['rank', 'result', 'time', 'dscp', 'pageurl', 'title']\
-                , (rank, result_str, detect_time, exception[:400], pageurl[:400], str(title)[:900])\
-                , 'url', url)
+                , ['url', 'result', 'time', 'dscp', 'pageurl', 'title']\
+                , (url, result_str, detect_time, exception[:400], pageurl[:400], str(title)[:900])\
+                , 'rank', rank)
 
             
-            logger.info(f'Rank {i}: {url} finished. Saved to the table `{table_name}`. ({round((i - start_no) * 100 / (end_no - start_no), 1)}%)')
+            logger.info(f'Rank {rank}: {url} finished. Saved to the table `{table_name}`. ({round((i - start_no) * 100 / (end_no - start_no), 1)}%)')
             logger.leftTimeEstimator(end_no - i)
             
             i += 1

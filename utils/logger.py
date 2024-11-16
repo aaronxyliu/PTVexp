@@ -56,6 +56,7 @@ class getLogger:
         self.enable_lefttime_indicator = False
         self.lefttime = -1
         self.timelist = []  # A queue storing the end time of last several tasks
+        self.leftnolist = []  # A queue storing the left number of tasks of last several tasks
         self.speed = 0  # Current speed of the tasks
         self.last_print_time = 0  # The time of the last print
 
@@ -136,13 +137,17 @@ class getLogger:
         
         now = time.time()
         self.timelist.append(now)
+        self.leftnolist.append(left_no)
         if len(self.timelist) > 50:     # Track lastest 50 tasks
             self.timelist.pop(0)
+            self.leftnolist.pop(0)
         if len(self.timelist) > 1:
-            self.speed = (now - self.timelist[0]) / (len(self.timelist) - 1)
-            self.lefttime = int(self.speed * left_no)
-            if self.lefttime < 0:
-                self.lefttime = 0
+            handled_task_no = self.leftnolist[0] - left_no
+            if handled_task_no > 0:
+                self.speed = (now - self.timelist[0]) / handled_task_no
+                self.lefttime = int(self.speed * left_no)
+                if self.lefttime < 0:
+                    self.lefttime = 0
         if now - self.last_print_time > 1:
             # If no print in the last 1 second, 
             # do an empty print to refresh the left time display

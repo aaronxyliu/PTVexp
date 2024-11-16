@@ -1,6 +1,7 @@
 # Check the version precision detected by PTV
 
 import ultraimport
+globalv = ultraimport('__dir__/../utils/globalv.py')
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 conn2 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Statistics')
@@ -10,16 +11,13 @@ Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 import json
 import numpy as np
 
-SUFFIX = '300k'
+SUFFIX = '200k'
 TABLE_NAME = f'result_{SUFFIX}'
 WEBS_NUM_LIMIT = 10
+EXCLUDE_FRAMEWORKS = True
 
 def analyze():
-    release_num_dict = {}
-    res2 = conn2.selectAll(f'libs_{SUFFIX}', ['library', '# releases'])
-    for entry in res2:
-        release_num_dict[entry[0]] = entry[1]
-
+    release_num_dict = globalv.releaseNumInfo()
 
     res = conn.selectAll(TABLE_NAME, ['rank', 'result', 'time'])
     i = 0
@@ -40,7 +38,17 @@ def analyze():
 
         libs = json.loads(entry[1])
         if libs:
-            if len(libs) > 300:
+            if isinstance(libs, str):
+                libs = json.loads(libs)
+
+            if isinstance(libs, dict):
+                # Convert dictionary to list    example: https://kuruma-ex.jp/
+                new_libs = []
+                for _, val in libs.items():
+                    new_libs.append(val)
+                libs = new_libs
+
+            if len(libs) > 400:
                 error_cnt += 1
                 # Detection error
                 continue
@@ -50,6 +58,10 @@ def analyze():
 
             for lib in libs:
                 libname = lib['libname']
+
+                if EXCLUDE_FRAMEWORKS and libname in globalv.FRAMEWORKS:
+                    continue
+
                 versions = lib['version']
                 v_num = len(versions)
                 if v_num == 0:
