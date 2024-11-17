@@ -8,6 +8,7 @@ conn3 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Statistics')
 conn4 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Releases')
 Dist = ultraimport('__dir__/../utils/stat.py').Distribution
 import json
+import numpy as np
 
 URL_BLACKLIST = []
 SUFFIX = '300k'
@@ -47,6 +48,8 @@ def updateAll():
     lib_dist = Dist()
     web_cnt = 0
 
+    distance_dist = Dist()
+
     fine_grain_dist = Dist()
     release_num_dict = releaseNumInfo()
 
@@ -68,6 +71,15 @@ def updateAll():
                 libname = lib['libname']
                 versions = lib['version']
                 date = lib['date']
+
+                if 'dist' in lib:
+                    if 'estimated_dist' in lib and lib['estimated_dist'] == True:
+                        pass
+                    else:
+                        # Only consider the distance when it is accurate
+                        distance_dist.add(libname, lib['dist'])
+                    
+                
                 lib_dist.add(libname)
                 version_num = len(versions)
                 if version_num == 0:
@@ -108,7 +120,9 @@ def updateAll():
         `avg. date` date DEFAULT NULL,
         `# loaded` int DEFAULT NULL,
         `% loaded` float DEFAULT NULL,
-        `% fine-grain version` float DEFAULT NULL
+        `% fine-grain version` float DEFAULT NULL,
+        `avg. distance` int DEFAULT NULL,
+        `% distance` float DEFAULT NULL
         ''')
 
     rank = 1
@@ -117,8 +131,16 @@ def updateAll():
         if libname in avgdate_dict:
             avgdate = avgdate_dict[libname]
 
-        conn3.update_otherwise_insert(RANK_SAVE_TABLE, ['star', 'starrank', 'avg. date', '# loaded', '%% loaded'],\
-            (star, rank, avgdate, freq_dict[libname], round(freq_dict[libname] * 100 / web_cnt, 1)), 'library', libname)
+        avg_distance = -1
+        perc_distance = -1
+        if len(distance_dist.dict[libname]) > 0:
+            avg_distance = np.mean(distance_dist.dict[libname])
+            if libname in release_num_dict and release_num_dict[libname] > 0:
+                release_num = release_num_dict[libname]
+                perc_distance = round(avg_distance * 100 / release_num, 1)
+
+        conn3.update_otherwise_insert(RANK_SAVE_TABLE, ['star', 'starrank', 'avg. date', '# loaded', '%% loaded', 'avg. distance', '%% distance'],\
+            (star, rank, avgdate, freq_dict[libname], round(freq_dict[libname] * 100 / web_cnt, 1), avg_distance, perc_distance), 'library', libname)
 
         if freq_dict[libname] > 0:
             fine_grain_num = 0
