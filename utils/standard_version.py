@@ -48,26 +48,30 @@ class StandardVersion:
 
     def __lt__(self, x: object) -> bool:
         # Less than overloading
-        if self.major_version == None or x.major_version == None:
+        if self.major_version != None and x.major_version == None:
             return False
-        if self.major_version < x.major_version:
+        elif self.major_version == None and x.major_version != None:
             return True
-        elif self.major_version > x.major_version:
-            return False
-        
-        if self.minor_version == None or x.minor_version == None:
-            return False
-        if self.minor_version < x.minor_version:
-            return True
-        elif self.minor_version > x.minor_version:
-            return False
-        
-        if self.patch_version == None or x.patch_version == None:
-            return False
-        if self.patch_version < x.patch_version:
-            return True
-        else:
-            return False
+        elif self.major_version != None and x.major_version != None:
+            if self.major_version != x.major_version:
+                return self.major_version < x.major_version
+            else:
+                if self.minor_version != None and x.minor_version == None:
+                    return False
+                elif self.minor_version == None and x.minor_version != None:
+                    return True
+                elif self.minor_version != None and x.minor_version != None:
+                    if self.minor_version != x.minor_version:
+                        return self.minor_version < x.minor_version
+                    else:
+                        if self.patch_version != None and x.patch_version == None:
+                            return False
+                        elif self.patch_version == None and x.patch_version != None:
+                            return True
+                        elif self.patch_version != None and x.patch_version != None:
+                            if self.patch_version != x.patch_version:
+                                return self.patch_version <= x.patch_version
+        return self.suffix <= x.suffix
         
     def __str__(self) -> str:
         print_content = f'''Major version: {self.major_version}\n\

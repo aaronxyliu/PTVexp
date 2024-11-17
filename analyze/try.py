@@ -1,9 +1,10 @@
 import ultraimport
-logger = ultraimport('__dir__/../utils/logger.py').getLogger()
-import time
-import blacklist
+SV = ultraimport('__dir__/../utils/standard_version.py').StandardVersion
 
-print(blacklist.BAD_VERSION_RESULT_LIBS)
+versions = ['1.3.2', '1.0.3', '3.7.1']
+versions = sorted(versions, key=lambda x:SV(x), reverse=False)
+print(versions)
+
 
 # # Import necessary libraries
 # import plotly.express as px

@@ -8,7 +8,7 @@ import sys
 import json
 import numpy as np
 
-SUPPLEMENT = True
+SUPPLEMENT_MODE = True
 
 START_RANK = 0
 
@@ -68,7 +68,7 @@ def analyze(table_name):
             underscore = None
                 
             for lib in libs:
-                if SUPPLEMENT and 'date' in lib:
+                if SUPPLEMENT_MODE and 'date' in lib and lib['date']!='':
                     continue
 
                 # Cannot encode object to json successfully on some websites:

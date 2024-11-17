@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
 import math
+import ultraimport
+SV = ultraimport('__dir__/../utils/standard_version.py').StandardVersion
 
 # Frequency
 class Distribution:
@@ -92,7 +94,7 @@ class Distribution:
         else:
             return np.var(values)
     
-    def showplot(self, title: str = None, processFunc = len, xlabel: str = None, ylabel: str = None, sortByX: bool = False, sortByY: bool = False, head: int = -1, partition: int = -1, xrange: list=None, yrange: list=None, dateY:bool = False, strX:bool = False, hist:bool = False):
+    def showplot(self, title: str = None, processFunc = len, xlabel: str = None, ylabel: str = None, sortByX: bool = False, sortByY: bool = False, head: int = -1, partition: int = -1, xrange: list=None, yrange: list=None, dateY:bool = False, strX:bool = False, verX:bool = False, hist:bool = False, thresY: float = -1):
         # "processFunc' must be a function that receives a list and returns a number
         # 'head' specify only display several items in the front
         # 'partition' makes data grouped by the X label
@@ -103,7 +105,9 @@ class Distribution:
             sortByX = True
 
         if sortByX:
-            if strX:
+            if verX:
+                show_dict = dict(sorted(show_dict.items(), key=lambda x:SV(x), reverse=False))
+            elif strX:
                 show_dict = dict(sorted(show_dict.items(), key=lambda x:x[0], reverse=False))
             else:
                 show_dict = dict(sorted(show_dict.items(), key=lambda x:float(x[0]), reverse=False))
@@ -129,8 +133,7 @@ class Distribution:
 
         for pair in show_dict.items():
             # Calculate the frequency by default
-            show_dict[pair[0]] = processFunc(pair[1])
-        
+            show_dict[pair[0]] = processFunc(pair[1])        
 
         # Sort by X or Y
         if sortByY:
@@ -147,7 +150,17 @@ class Distribution:
         for pair in show_dict.items():
             if head > 0 and i >= head:
                 break
-            x_list.append(pair[0])
+
+            if pair[1] <= thresY:
+                # Filter out the data below the threshold
+                continue
+            x_item = pair[0]
+
+            # The version title of core-js is too long
+            # if x_item[0] == 'c':
+            #     x_item = x_item[13:]
+            
+            x_list.append(x_item)
             y_list.append(pair[1])
             i += 1
         
@@ -167,7 +180,7 @@ class Distribution:
         plt.xlabel(xlabel or "Item")
         plt.ylabel(ylabel or "Frequency")
 
-        plt.xticks(rotation=-25)
+        plt.xticks(rotation=-90)
 
         if yrange:
             if dateY:
