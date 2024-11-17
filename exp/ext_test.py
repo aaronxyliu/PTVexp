@@ -74,7 +74,7 @@ def retrieveInfo(driver, url):
         result_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-result"]').get_attribute("content")
     except Exception as e:
         logger.warning(e)
-        return '[]', -1, 'detection timeout', cur_url, webTitle   # detection timeout
+        return '[]', -1, 'find element error', cur_url, webTitle   # detection timeout
     
     if result_str == None or result_str == '':
         return '[]', -1, 'detection error', cur_url, webTitle   # detection timeout

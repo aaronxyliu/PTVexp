@@ -70,8 +70,8 @@ class StandardVersion:
                             return True
                         elif self.patch_version != None and x.patch_version != None:
                             if self.patch_version != x.patch_version:
-                                return self.patch_version <= x.patch_version
-        return self.suffix <= x.suffix
+                                return self.patch_version < x.patch_version
+        return self.suffix < x.suffix
         
     def __str__(self) -> str:
         print_content = f'''Major version: {self.major_version}\n\
@@ -80,6 +80,12 @@ Patch version: {self.patch_version}\n\
 Suffix: {self.suffix}
         '''
         return print_content
+    
+    def onlySuffix(self) -> bool:
+        if self.major_version == None:
+            return True
+        return False
+
 
 # a = StandardVersion('v0.2.3')
 # b = StandardVersion('0.2.3')

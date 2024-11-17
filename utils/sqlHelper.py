@@ -138,6 +138,9 @@ class ConnDatabase:
         self.cursor.execute(cmd)
         return self.connection.commit()
     
+    def deleteOne(self, table_name: str, condition: str) -> None:
+        self.execute(f"DELETE FROM `{table_name}` WHERE {condition} LIMIT 1;")
+    
 
     def combine_tables(self, new_table, old_tables: list) -> None:
         # Combine several tables with the same columns into a new table
