@@ -18,7 +18,7 @@ WEB_LOAD_TIMEOUT = 30
 PROCESS_UNRESPONSE_TIMEOUT = 60
 DETECTION_TIMEOUT = 25
 SKIP_EXISTED = False
-APPLY_PTV_UPDATE = False # Only detect websites containing libraries that have updates in PTV
+APPLY_PTV_UPDATE = True # Only detect websites containing libraries that have updates in PTV
 
 # http://hpdns.net/
 # old_df = pd.read_csv('data/SEMrushRanks-us-2023-02-23.csv')
@@ -65,17 +65,12 @@ def retrieveInfo(driver, url):
         logger.warning(e)
 
         # Restart the driver
-        # driver.quit()
-        # driver.start_client()
+        driver.quit()
+        driver.start_client()
 
         return '[]', -1, 'detection timeout', cur_url, webTitle   # detection timeout
     
-    try:
-        result_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-result"]').get_attribute("content")
-    except Exception as e:
-        logger.warning(e)
-        return '[]', -1, 'detection timeout', cur_url, webTitle   # detection timeout
-    
+    result_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-result"]').get_attribute("content")
     if result_str == None or result_str == '':
         return '[]', -1, 'detection error', cur_url, webTitle   # detection timeout
 

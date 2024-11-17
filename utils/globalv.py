@@ -8,7 +8,7 @@ BAD_VERSION_RESULT_LIBS = ['react', 'vue', 'angular-loader', 'svelte']
 # angular-loader: not enough version files on Cdnjs
 # svelte: UI framework with no version information
 
-FRAMEWORKS = ['react', 'vue', 'angular-loader', 'svelte', 'preact', 'next', 'vue2', 'angularjs', 'emberjs', 'angular']
+FRAMEWORKS = ['react', 'vue', 'angular-loader', 'svelte', 'preact', 'next', 'vue2', 'angularjs', 'emberjs', 'angular', 'react-intl']
 
 LIBS_WITH_UPDATE = ['flatpickr', 'js-xss', 'autotracker', 'es6-promise', 'enquire.js', 'docute', 'aframe', 'simplebar', 'qrcode', 'highlight.js', 'dayjs', 'jquery-timeago', 'sweetalert', 'tween.js', 'pubsub-js', 'cash', 'feather-icons', 'overlayscrollbars']
 
