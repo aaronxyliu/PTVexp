@@ -108,7 +108,7 @@ def ExistUpdatedLib(table_name: str, rank: int) -> bool:
         
     return False
 
-def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
+def updateAll(df, table_name, start_no = 1, end_no = LARGE_INT, channel = None):
     conn.create_if_not_exist(table_name, '''
         `id` int unsigned NOT NULL AUTO_INCREMENT,
         `rank` int DEFAULT NULL,
@@ -121,7 +121,7 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
         PRIMARY KEY (`id`)
         ''')
     website_num = df.shape[0]
-    i = 1
+    i = start_no
     while True:
         opt = webdriver.ChromeOptions()
         opt.add_argument("--headless")
@@ -134,9 +134,12 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
         driver.set_page_load_timeout(WEB_LOAD_TIMEOUT)
 
         while True:
-            if i < channel['next_no']:
-                i += 1
-                continue
+            
+            if channel:
+                channel['heartbeat_time'] = time.time()
+                if i < channel['next_no']:
+                    i += 1
+                    continue
             if i >= website_num or i >= end_no:
                 break
             
@@ -152,12 +155,11 @@ def updateAll(df, table_name, start_no = 0, end_no = LARGE_INT, channel = None):
                 if res:
                     i += 1
                     continue
-            
             if APPLY_PTV_UPDATE:
                 if not ExistUpdatedLib(table_name, rank):
                     i += 1
                     continue
-                
+            
 
             result_str, detect_time, exception, pageurl, title = retrieveInfo(driver, url)
             logger.indent()
