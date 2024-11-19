@@ -11,7 +11,7 @@ import math
 
 SUPPLEMENT_MODE = False
 
-START_RANK = 0
+START_RANK = 102372
 
 
 def average_date(dates: list) -> str:

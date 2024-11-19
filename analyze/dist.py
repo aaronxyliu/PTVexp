@@ -9,8 +9,8 @@ import numpy as np
 globalv = ultraimport('__dir__/../utils/globalv.py')
 
 URL_BLACKLIST = ['partyrock.aws']
-WEBSITE_RANK_RANGE = (95 * 10000, 100 * 10000)
-SUFFIX = '1M'
+WEBSITE_RANK_RANGE = (10 * 10000, 15 * 10000)
+SUFFIX = '200k'
 DETECTION_RESULT_TABLE = 'result_' + SUFFIX
 
 def analyze(table_name, lib_blacklist):

@@ -11,7 +11,7 @@ import json
 import numpy as np
 
 URL_BLACKLIST = []
-SUFFIX = '300k'
+SUFFIX = '200k'
 DETECTION_RESULT_TABLE = 'result_' + SUFFIX
 RANK_SAVE_TABLE = 'libs_' + SUFFIX
 
@@ -133,7 +133,7 @@ def updateAll():
 
         avg_distance = -1
         perc_distance = -1
-        if len(distance_dist.dict[libname]) > 0:
+        if libname in distance_dist.dict and len(distance_dist.dict[libname]) > 0:
             avg_distance = np.mean(distance_dist.dict[libname])
             if libname in release_num_dict and release_num_dict[libname] > 0:
                 release_num = release_num_dict[libname]
