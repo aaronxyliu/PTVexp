@@ -74,11 +74,14 @@ def retrieveInfo(driver, url):
         result_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-result"]').get_attribute("content")
     except Exception as e:
         logger.warning(e)
-        return '[]', -1, 'find element error', cur_url, webTitle   # detection timeout
+        return '[]', -1, 'find element error', cur_url, webTitle
     if result_str == None or result_str == '':
         return '[]', -1, 'detection error', cur_url, webTitle   # detection timeout
-
-    detect_time_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-time"]').get_attribute("content")
+    try:
+        detect_time_str = driver.find_element(By.XPATH, '//*[@id="lib-detect-time"]').get_attribute("content")
+    except Exception as e:
+        logger.warning(e)
+        return '[]', -1, 'find element error', cur_url, webTitle
     try:
         detect_time = float(detect_time_str)
     except:
