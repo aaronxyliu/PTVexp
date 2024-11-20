@@ -4,6 +4,7 @@ SV = ultraimport('__dir__/../utils/standard_version.py').StandardVersion
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 conn2 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Releases')
 Dist = ultraimport('__dir__/../utils/stat.py').Distribution
+globalv = ultraimport('__dir__/../utils/globalv.py')
 import sys
 import json
 import numpy as np
@@ -11,7 +12,9 @@ import math
 
 SUPPLEMENT_MODE = False
 
-START_RANK = 102372
+START_RANK = 0
+
+QUICK_LOOKUP_DICT = {}  # Speed up by preventing repeated dataset select request
 
 
 def average_date(dates: list) -> str:
@@ -23,7 +26,7 @@ def average_date(dates: list) -> str:
                         .astype('datetime64[s]'))
     return str(mean_date)[:10]
 
-def analyze(table_name):
+def analyze():
 
     logger.info(f'Generating the quick look-up dictionary for the Releases database...')
     average_date_dict = {}
@@ -35,129 +38,142 @@ def analyze(table_name):
             dates.append(entry[0])
         average_date_dict[l] = average_date(dates)
 
-    logger.info(f'Analyzing the detection result table {table_name}...')
-    res = conn.selectAll(table_name, ['result', 'time', 'rank'])
-
+    # Record variables
     no_match_dist = Dist()
-
     lib_cnt = 0
-    version_cnt = 0
-
     case1 = 0
     case2 = 0
     case3 = 0
     case4 = 0
-
-    # old_rank = 0
     i = 0
-    for entry in res:
-        i += 1
-        time = entry[1]
-        if time < 0:
-            # Error
+    
+    web_tables = conn.show_tables()
+    for table_name in globalv.WEB_DATASET:
+        if table_name not in web_tables:
             continue
 
-        libs = json.loads(entry[0])
-        rank = entry[2]
-
-        if rank < START_RANK:
-            continue
+        logger.info(f'Analyzing the detection result table {table_name}...')
+        res = conn.selectAll(table_name, ['result', 'time', 'rank'])
 
         
-        if libs:
-            if isinstance(libs, str):
-                libs = json.loads(libs)
+        for entry in res:
+            i += 1
+            time = entry[1]
+            if time < 0:
+                # Error
+                continue
 
-            if isinstance(libs, dict):
-                # Convert dictionary to list    example: https://kuruma-ex.jp/
-                new_libs = []
-                for _, val in libs.items():
-                    new_libs.append(val)
-                libs = new_libs
-                
-            for lib in libs:
-                if SUPPLEMENT_MODE and 'date' in lib and lib['date']!='':
-                    continue
+            libs = json.loads(entry[0])
+            rank = entry[2]
 
-                # Cannot encode object to json successfully on some websites:
-                # https://itaucorretora.com.br/
-                libname = lib['libname'] 
+            if rank < START_RANK:
+                continue
 
-                lib_cnt += 1
+            
+            if libs:
+                if isinstance(libs, str):
+                    libs = json.loads(libs)
 
-                lib['date'] = ''
-                
-                if libname not in lib_tablename_list:
-                    logger.warning(f'{libname} has no data in the Releases database.')
-                    continue
-                
-                res2 = conn2.fetchall(f"SELECT `tag_name`, `publish_date` FROM `{libname}` ORDER BY `publish_date` DESC;")
-                if len(res2) == 0:
-                    logger.warning(f'{libname} is empty in the Releases database.')
-                    continue
+                if isinstance(libs, dict):
+                    # Convert dictionary to list    example: https://kuruma-ex.jp/
+                    new_libs = []
+                    for _, val in libs.items():
+                        new_libs.append(val)
+                    libs = new_libs
+                    
+                for lib in libs:
+                    if SUPPLEMENT_MODE and 'date' in lib and lib['date']!='':
+                        continue
 
-                versions = lib['version']
-                version_cnt += 1
-                if len(versions) == 0:
-                    # The version prediction is "universe"
-                    lib['estimated_date'] = True
-                    lib['date'] = average_date_dict[libname]
-                    lib['estimated_dist'] = True
-                    lib['dist'] = int(len(res2)/2)
-                else:
-                    if len(versions) > 10:
+                    # Cannot encode object to json successfully on some websites:
+                    # https://itaucorretora.com.br/
+                    libname = lib['libname'] 
+
+                    lib_cnt += 1
+
+                    lib['date'] = ''
+                    
+                    if libname not in lib_tablename_list:
+                        logger.warning(f'{libname} has no data in the Releases database.')
+                        continue
+                    if libname not in QUICK_LOOKUP_DICT:
+                        QUICK_LOOKUP_DICT[libname] =  conn2.fetchall(f"SELECT `tag_name`, `publish_date` FROM `{libname}` ORDER BY `publish_date` DESC;")
+
+                    res2 = QUICK_LOOKUP_DICT[libname]
+                    if len(res2) == 0:
+                        logger.warning(f'{libname} is empty in the Releases database.')
+                        continue
+
+                    
+                    if isinstance(lib['version'], dict):
+                        # Convert dictionary to list    example: https://tekar.ru/
+                        new_versions = []
+                        for _, val in lib['version'].items():
+                            new_versions.append(val)
+                        lib['version'] = new_versions
+                    versions = lib['version']
+
+                    if len(versions) == 0:
+                        # The version prediction is "universe"
                         lib['estimated_date'] = True
-                    if len(versions) > len(res2)/3:
+                        lib['date'] = average_date_dict[libname]
                         lib['estimated_dist'] = True
+                        lib['dist'] = int(len(res2)/2)
+                    else:
+                        if len(versions) > 10:
+                            lib['estimated_date'] = True
+                        if len(versions) > len(res2)/3:
+                            lib['estimated_dist'] = True
 
-                    middle_version = versions[math.floor(len(versions)/2)]
-                    match_flag = False
-                    previous_entry = None
-                    distance = 0
-                    for entry2 in res2:
-                        if SV(entry2[0]) == SV(middle_version):
-                            # The version matches
-                            lib['date'] = str(entry2[1])
-                            lib['dist'] = distance
-                            case3 += 1
-                            match_flag = True
-                            break
-                        elif SV(entry2[0]) < SV(middle_version):
-                            if not previous_entry:
-                                # This version is newer than all
+                        middle_version = versions[math.floor(len(versions)/2)]
+                        match_flag = False
+                        previous_entry = None
+                        distance = 0
+                        for entry2 in res2:
+                            if SV(entry2[0]) == SV(middle_version):
+                                # The version matches
                                 lib['date'] = str(entry2[1])
                                 lib['dist'] = distance
-                                case1 += 1
+                                case3 += 1
+                                match_flag = True
+                                break
+                            elif SV(entry2[0]) < SV(middle_version):
+                                if not previous_entry:
+                                    # This version is newer than all
+                                    lib['date'] = str(entry2[1])
+                                    lib['dist'] = distance
+                                    case1 += 1
+                                else:
+                                    # This version is between two entries
+                                    lib['date'] = average_date([previous_entry[1], entry2[1]])
+                                    lib['dist'] = distance
+                                    case2 += 1
+                                match_flag = True
+                                break
+                            previous_entry = entry2
+                            distance += 1
+
+                        if not match_flag:
+                            if SV(middle_version).onlySuffix():
+                                # The version is only suffix, no version number, so give an estimated date
+                                lib['estimated_date'] = True
+                                lib['date'] = average_date_dict[libname]
+                                lib['estimated_dist'] = True
+                                lib['dist'] = int(len(res2)/2)
+                                no_match_dist.add(libname)
                             else:
-                                # This version is between two entries
-                                lib['date'] = average_date([previous_entry[1], entry2[1]])
-                                lib['dist'] = distance
-                                case2 += 1
-                            match_flag = True
-                            break
-                        previous_entry = entry2
-                        distance += 1
+                                # This version is older than all
+                                lib['date'] = str(res2[-1][1])
+                                lib['dist'] = len(res2)
+                                case4 += 1
+                
+                if len(libs) > 0:
+                    conn.update(table_name, ['result'], (json.dumps(libs),), f"`rank`={rank}")
 
-                    if not match_flag:
-                        if SV(middle_version).onlySuffix():
-                            # The version is only suffix, no version number, so give an estimated date
-                            lib['estimated_date'] = True
-                            lib['date'] = average_date_dict[libname]
-                            lib['estimated_dist'] = True
-                            lib['dist'] = int(len(res2)/2)
-                            no_match_dist.add(libname)
-                        else:
-                            # This version is older than all
-                            lib['date'] = str(res2[-1][1])
-                            lib['dist'] = len(res2)
-                            case4 += 1
-            conn.update(table_name, ['result'], (json.dumps(libs),), f"`rank`={rank}")
-
-        logger.leftTimeEstimator(len(res) - i)
+            logger.leftTimeEstimator(1000 * 1000 - i)
 
 
     logger.info(f'# Libs: {lib_cnt}')
-    logger.info(f'# Versions: {version_cnt}')
     logger.info(f'# Newest: {case1}')
     logger.info(f'# Between: {case2}')
     logger.info(f'# Exact match: {case3}')

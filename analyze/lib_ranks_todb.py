@@ -30,8 +30,8 @@ def dateInfo(libname):
         return
     if res:
         num = len(res)
-        conn3.update_otherwise_insert(RANK_SAVE_TABLE, ['# releases', 'release range'],\
-                (num, f'{res[num-1][0]} ~ {res[0][0]} ({res[num-1][1]} ~ {res[0][1]})'), 'library', libname)
+        conn3.update_otherwise_insert(RANK_SAVE_TABLE, ['# releases', 'release range', 'latest date'],\
+                (num, f'{res[num-1][0]} ~ {res[0][0]} ({res[num-1][1]} ~ {res[0][1]})', res[0][1]), 'library', libname)
 
 def releaseNumInfo():
     libs = conn4.show_tables()
@@ -116,6 +116,7 @@ def updateAll():
         `url` varchar(500) DEFAULT NULL,
         `# releases` int DEFAULT NULL,
         `release range` varchar(500) DEFAULT NULL,
+        `latest date` date DEFAULT NULL,
         `latest detectable version` varchar(500) DEFAULT NULL,
         `avg. date` date DEFAULT NULL,
         `# loaded` int DEFAULT NULL,
