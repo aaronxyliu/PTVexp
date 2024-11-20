@@ -187,7 +187,7 @@ def analyze():
 if __name__ == '__main__':
     # Usage: python3 analyze/lib_release_time_induce.py result_200k
     if len(sys.argv) == 1:
-        logger.info('Need provide the detection result table name.')
+        analyze()
     elif len(sys.argv) == 2:
         analyze(sys.argv[1])
     logger.timecost()

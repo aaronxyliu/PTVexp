@@ -2,7 +2,7 @@ import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 
-NO = 80
+NO = 90
 
 OUTPUT_TABLE = f'result_{NO}0k'
 
@@ -21,7 +21,11 @@ if __name__ == '__main__':
     logger.custom("combined table sizes", combine_table_sizes)
 
     conn.combine_tables(OUTPUT_TABLE, combine_tables)
+    logger.custom("output table", OUTPUT_TABLE)
     logger.custom("output table size", conn.entry_count(OUTPUT_TABLE))
+
+    conn.set_primary_key(OUTPUT_TABLE, 'rank')
+    logger.info('The primary key is set to `rank`.')
     conn.close()
 
 

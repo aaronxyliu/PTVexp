@@ -160,6 +160,6 @@ class ConnDatabase:
         union_statement = ' UNION '.join(select_statements)
         self.execute(f'''INSERT INTO `{new_table}` SELECT * FROM ({union_statement}) a;''')
     
-    def set_primary(self, table_name: str, primary_key: str) -> None:
+    def set_primary_key(self, table_name: str, primary_key: str) -> None:
         self.execute(f"ALTER TABLE `{table_name}` ADD PRIMARY KEY (`{primary_key}`);")
         

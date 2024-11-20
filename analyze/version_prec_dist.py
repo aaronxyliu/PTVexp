@@ -19,59 +19,67 @@ EXCLUDE_FRAMEWORKS = True
 def analyze():
     release_num_dict = globalv.releaseNumInfo()
 
-    res = conn.selectAll(TABLE_NAME, ['rank', 'result', 'time'])
+    
     i = 0
     no_zero_libs_cnt = 0
     error_cnt = 0
     unknown_but_acceptable_num = 0
 
     version_dist = Dist()
-    for entry in res:
-        i += 1
-        # if i > WEBS_NUM_LIMIT:
-        #     break
-        rank = entry[0]
-        time = entry[0]
-        if time < 0:
-            # Error
-            continue    
 
-        libs = json.loads(entry[1])
-        if libs:
-            if isinstance(libs, str):
-                libs = json.loads(libs)
+    web_tables = conn.show_tables()
+    for table_name in globalv.WEB_DATASET:
+        if table_name not in web_tables:
+            continue
 
-            if isinstance(libs, dict):
-                # Convert dictionary to list    example: https://kuruma-ex.jp/
-                new_libs = []
-                for _, val in libs.items():
-                    new_libs.append(val)
-                libs = new_libs
+        logger.info(f'Analyzing the detection result table {table_name}...')
+        res = conn.selectAll(table_name, ['rank', 'result', 'time'])
+        for entry in res:
+            i += 1
+            # if i > WEBS_NUM_LIMIT:
+            #     break
+            rank = entry[0]
+            time = entry[0]
+            if time < 0:
+                # Error
+                continue    
 
-            if len(libs) > 400:
-                error_cnt += 1
-                # Detection error
-                continue
+            libs = json.loads(entry[1])
+            if libs:
+                if isinstance(libs, str):
+                    libs = json.loads(libs)
 
-            if len(libs) > 0:
-                no_zero_libs_cnt += 1
+                if isinstance(libs, dict):
+                    # Convert dictionary to list    example: https://kuruma-ex.jp/
+                    new_libs = []
+                    for _, val in libs.items():
+                        new_libs.append(val)
+                    libs = new_libs
 
-            for lib in libs:
-                libname = lib['libname']
-
-                if EXCLUDE_FRAMEWORKS and libname in globalv.FRAMEWORKS:
+                if len(libs) > 400:
+                    error_cnt += 1
+                    # Detection error
                     continue
 
-                versions = lib['version']
-                v_num = len(versions)
-                if v_num == 0:
-                    if not release_num_dict[libname]:
+                if len(libs) > 0:
+                    no_zero_libs_cnt += 1
+
+                for lib in libs:
+                    libname = lib['libname']
+
+                    if EXCLUDE_FRAMEWORKS and libname in globalv.FRAMEWORKS:
                         continue
-                    if release_num_dict[libname] <= 10:
-                        unknown_but_acceptable_num += 1
-                    v_num = release_num_dict[libname]
-                    
-                version_dist.add(v_num, rank)
+
+                    versions = lib['version']
+                    v_num = len(versions)
+                    if v_num == 0:
+                        if not release_num_dict[libname]:
+                            continue
+                        if release_num_dict[libname] <= 10:
+                            unknown_but_acceptable_num += 1
+                        v_num = release_num_dict[libname]
+                        
+                    version_dist.add(v_num, rank)
 
     logger.custom('Zero Libs Count', len(res) - no_zero_libs_cnt - error_cnt)
     lib_num = version_dist.size()

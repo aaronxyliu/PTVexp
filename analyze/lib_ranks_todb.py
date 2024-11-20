@@ -7,11 +7,12 @@ conn2 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Libraries')
 conn3 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Statistics')
 conn4 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Releases')
 Dist = ultraimport('__dir__/../utils/stat.py').Distribution
+globalv = ultraimport('__dir__/../utils/globalv.py')
 import json
 import numpy as np
 
 URL_BLACKLIST = []
-SUFFIX = '200k'
+SUFFIX = 'All'
 DETECTION_RESULT_TABLE = 'result_' + SUFFIX
 RANK_SAVE_TABLE = 'libs_' + SUFFIX
 
@@ -42,57 +43,63 @@ def releaseNumInfo():
 
 
 def updateAll():
-    res = conn.selectAll(DETECTION_RESULT_TABLE, ['result', 'time', 'url', 'rank'])
-
     date_dist = Dist()
     lib_dist = Dist()
     web_cnt = 0
+    i = 0
 
     distance_dist = Dist()
 
     fine_grain_dist = Dist()
     release_num_dict = releaseNumInfo()
 
-
-    i = 0
-    for entry in res:
-        i += 1
-        time = entry[1]
-        if time < 0:
-            # Error
+    web_tables = conn.show_tables()
+    for table_name in globalv.WEB_DATASET:
+        if table_name not in web_tables:
             continue
-        url = entry[2]
-        if url in URL_BLACKLIST:
-            continue
-        web_cnt += 1
-        libs = json.loads(entry[0])
-        if libs:
-            for lib in libs:
-                libname = lib['libname']
-                versions = lib['version']
-                date = lib['date']
 
-                if 'dist' in lib:
-                    if 'estimated_dist' in lib and lib['estimated_dist'] == True:
-                        pass
-                    else:
-                        # Only consider the distance when it is accurate
-                        distance_dist.add(libname, lib['dist'])
+        logger.info(f'Analyzing the detection result table {table_name}...')
+        res = conn.selectAll(table_name, ['result', 'time', 'url', 'rank'])
+
+    
+        for entry in res:
+            i += 1
+            time = entry[1]
+            if time < 0:
+                # Error
+                continue
+            url = entry[2]
+            if url in URL_BLACKLIST:
+                continue
+            web_cnt += 1
+            libs = json.loads(entry[0])
+            if libs:
+                for lib in libs:
+                    libname = lib['libname']
+                    versions = lib['version']
+                    date = lib['date']
+
+                    if 'dist' in lib:
+                        if 'estimated_dist' in lib and lib['estimated_dist'] == True:
+                            pass
+                        else:
+                            # Only consider the distance when it is accurate
+                            distance_dist.add(libname, lib['dist'])
+                        
                     
-                
-                lib_dist.add(libname)
-                version_num = len(versions)
-                if version_num == 0:
-                    if libname in release_num_dict:
-                        if release_num_dict[libname] and release_num_dict[libname] <= FINE_GRAIN_THRESHOLD:
+                    lib_dist.add(libname)
+                    version_num = len(versions)
+                    if version_num == 0:
+                        if libname in release_num_dict:
+                            if release_num_dict[libname] and release_num_dict[libname] <= FINE_GRAIN_THRESHOLD:
+                                fine_grain_dist.add(libname)
+                    else:
+                        if version_num <= FINE_GRAIN_THRESHOLD:
                             fine_grain_dist.add(libname)
-                else:
-                    if version_num <= FINE_GRAIN_THRESHOLD:
-                        fine_grain_dist.add(libname)
 
-                if date and len(date) >= 4:
-                    date_dist.add(libname, date)
-        logger.leftTimeEstimator(len(res) - i)
+                    if date and len(date) >= 4:
+                        date_dist.add(libname, date)
+            logger.leftTimeEstimator(1000 * 1000 - i)
 
     avgdate_dict = date_dist.avgDateDict()
     freq_dict = lib_dist.freqDict()
