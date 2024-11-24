@@ -90,10 +90,13 @@ def retrieveInfo(driver, url):
     return result_str, detect_time, '', cur_url, webTitle
 
 def ExistUpdatedLib(table_name: str, rank: int) -> bool:
-    res = conn.selectOne(table_name, ['result'], f"`rank`='{rank}'")
+    res = conn.selectOne(table_name, ['result', 'url'], f"`rank`='{rank}'")
     if not res:
         return False
     libs = json.loads(res[0])
+    url = res[1]
+    if url in globalv.PROXY_URL:
+        return True
     if libs:
         if isinstance(libs, str):
             libs = json.loads(libs)
