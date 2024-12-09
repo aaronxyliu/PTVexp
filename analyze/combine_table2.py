@@ -2,7 +2,7 @@ import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
 conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 
-NO = 90
+NO = 10
 
 OUTPUT_TABLE = f'result_{NO}0k'
 

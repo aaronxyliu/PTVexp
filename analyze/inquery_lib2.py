@@ -4,13 +4,14 @@ conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Detection3')
 conn2 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Libraries')
 conn3 = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Releases')
 Dist = ultraimport('__dir__/../utils/stat.py').Distribution
+globalv = ultraimport('__dir__/../utils/globalv.py')
 
 import sys
 import json
 import math
 
 URL_BLACKLIST = []
-DETECTION_RESULT_TABLE = 'result_500k'
+MIN_SHOW_THRESHOLD = 100
 
 def basicInfo(libname):
     logger.info('=== BASIC INFORMATION ===')
@@ -41,7 +42,6 @@ def dateInfo(libname):
 def analyze(libname):
     logger.info('=== DISTRIBUTION ANALYSIS ===')
     logger.indent()
-    res = conn.selectAll(DETECTION_RESULT_TABLE, ['result', 'time', 'url', 'rank'])
 
     rank_dist = Dist()
     year_dist = Dist()
@@ -53,75 +53,82 @@ def analyze(libname):
     no_date_cnt = 0
     url_list = []
 
-    accurate_version_dist = Dist()   # Accurate versioning (version range length = 1)
-    fine_version_dist = Dist()  # Fine-grained versioning (version range length <= 10)
-    all_version_dist = Dist()   # All versioning
-
-    for entry in res:
-        time = entry[1]
-        url = entry[2]
-        rank = entry[3]
-        if time < 0:
-            # Error
+    web_tables = conn.show_tables()
+    for table_name in globalv.WEB_DATASET:
+        if table_name not in web_tables:
             continue
-        if url in URL_BLACKLIST:
-            continue
-        web_cnt += 1
-        libs = json.loads(entry[0])
-        # if rank > 44900:
-        #     print(rank)
-        if libs:
-            for lib in libs:
-                if lib['libname'] != libname:
-                    continue
+        logger.info(f'Analyzing the detection result table {table_name}...')
+        res = conn.selectAll(table_name, ['result', 'time', 'url', 'rank'])
 
-  
-                
+        accurate_version_dist = Dist()   # Accurate versioning (version range length = 1)
+        fine_version_dist = Dist()  # Fine-grained versioning (version range length <= 10)
+        all_version_dist = Dist()   # All versioning
 
-                # url_list.append(url)
+        for entry in res:
+            time = entry[1]
+            url = entry[2]
+            rank = entry[3]
+            if time < 0:
+                # Error
+                continue
+            if url in URL_BLACKLIST:
+                continue
+            web_cnt += 1
+            libs = json.loads(entry[0])
+            # if rank > 44900:
+            #     print(rank)
+            if libs:
+                for lib in libs:
+                    if lib['libname'] != libname:
+                        continue
 
-                versions = lib['version']
-                if len(libs) > 300:
-                    # Detection error
-                    continue
-
-                for otherlib in libs:
-                    if otherlib['libname'] != libname:
-                        other_lib_dist.add(otherlib['libname'])
-                version_len_dist.add(len(versions))
-                date = lib['date']
-
-                url_list.append(url)
-                
-                lib_cnt += 1
-                if len(versions) == 0:
+    
                     
 
-                    pass
-                else:
-                    if len(versions) == 1:
-                        accurate_version_dist.add(str(versions[0]))
-                        all_version_dist.add(str(versions[0]))
-                    if len(versions) <= 10:
-                        fine_version_dist.add(str(versions[int(len(versions)/2)]))
-                    if len(versions) > 1:
-                        all_version_dist.add(f"{str(versions[0])}~{str(versions[-1])}")
+                    # url_list.append(url)
+
+                    versions = lib['version']
+                    if len(libs) > 300:
+                        # Detection error
+                        continue
+
+                    for otherlib in libs:
+                        if otherlib['libname'] != libname:
+                            other_lib_dist.add(otherlib['libname'])
+                    version_len_dist.add(len(versions))
+                    date = lib['date']
+
+                    url_list.append(url)
+                    
+                    lib_cnt += 1
+                    if len(versions) == 0:
+                        
+
+                        pass
+                    else:
+                        if len(versions) == 1:
+                            accurate_version_dist.add(str(versions[0]))
+                            all_version_dist.add(str(versions[0]))
+                        if len(versions) <= 10:
+                            fine_version_dist.add(str(versions[int(len(versions)/2)]))
+                        if len(versions) > 1:
+                            all_version_dist.add(f"{str(versions[0])}~{str(versions[-1])}")
 
 
-                if date and len(date) >= 4:
-                    date_list.append(date)
-                    rank_dist.add(rank, date)
-                    year = date[:4]
-                    year_dist.add(year)
-                else:
-                    no_date_cnt += 1
-                break
+                    if date and len(date) >= 4:
+                        date_list.append(date)
+                        rank_dist.add(rank, date)
+                        year = date[:4]
+                        year_dist.add(year)
+                    else:
+                        no_date_cnt += 1
+                    break
     
 
     
     logger.info(f'# total websites: {web_cnt}')
     logger.info(f'# websites containing {libname}: {lib_cnt} ({round(lib_cnt * 100 / web_cnt, 1)}%)')
-    logger.info(url_list)
+    logger.info(url_list[:20])
     logger.info(f'# no date: {no_date_cnt}')
     if lib_cnt > 0:
         accu_num = accurate_version_dist.size()
@@ -132,7 +139,7 @@ def analyze(libname):
 
     logger.info(other_lib_dist.freqDict(f'Other Libraries Companied with {libname}'))
     # year_dist.showplot(f'Version Year Distribution of {libname}', xlabel='year', ylabel='# occurrences', sortByX=True)
-    all_version_dist.showplot(f'Version Distribution of {libname}', xlabel='version', verX=True, ylabel='# occurrences', sortByX=True, thresY=0)
+    all_version_dist.showplot(f'Version Distribution of {libname}', xlabel='version', verX=True, ylabel='# occurrences', sortByX=True, thresY=MIN_SHOW_THRESHOLD)
     # version_len_dist.showplot(f'Version Range Length Distribution of {libname}', xlabel='length', ylabel='# occurrences', sortByX=True)
 
     # rank_dist.showplot(f'Frequency of {libname} on Different Ranks of Websites', xlabel='website rank', ylabel='# occurrences')
@@ -142,7 +149,7 @@ def analyze(libname):
     logger.newline()
 
 if __name__ == '__main__':
-    # Usage: python3 analyze/inquery_lib.py jquery
+    # Usage: python3 analyze/inquery_lib2.py jquery
     if len(sys.argv) == 1:
         logger.info('Need provide the library name.')
     elif len(sys.argv) == 2:

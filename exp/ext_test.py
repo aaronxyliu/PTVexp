@@ -138,7 +138,7 @@ def updateAll(df, table_name, start_no = 1, end_no = LARGE_INT, channel = None):
             if channel:
                 channel['heartbeat_time'] = time.time()
                 if i < channel['next_no']:
-                    i += 1
+                    i = channel['next_no']
                     continue
             if i >= website_num or i >= end_no:
                 break

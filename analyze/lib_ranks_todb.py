@@ -45,6 +45,7 @@ def releaseNumInfo():
 def updateAll():
     date_dist = Dist()
     lib_dist = Dist()
+    version_dist = Dist()
     web_cnt = 0
     i = 0
 
@@ -73,6 +74,11 @@ def updateAll():
                 continue
             web_cnt += 1
             libs = json.loads(entry[0])
+
+            if len(libs) > 300:
+                # Detection error
+                continue
+            
             if libs:
                 for lib in libs:
                     libname = lib['libname']
@@ -85,6 +91,11 @@ def updateAll():
                         else:
                             # Only consider the distance when it is accurate
                             distance_dist.add(libname, lib['dist'])
+                    
+                    if len(versions) == 1:
+                        version_dist.add_distinct(libname, str(versions[0]))
+                    elif len(versions) > 1:
+                        version_dist.add_distinct(libname, f"{str(versions[0])}~{str(versions[-1])}")
                         
                     
                     lib_dist.add(libname)
@@ -105,6 +116,7 @@ def updateAll():
     freq_dict = lib_dist.freqDict()
     star_dict = lib_dist.dict.copy()
     fine_grain_freq_dict = fine_grain_dist.freqDict()
+    version_freq_dict = version_dist.freqDict()
     for libname in star_dict:
         res2 = conn2.fetchone(f"SELECT `star` FROM `libs_cdnjs` WHERE `libname`='{libname}'")
         if res2:
@@ -130,7 +142,8 @@ def updateAll():
         `% loaded` float DEFAULT NULL,
         `% fine-grain version` float DEFAULT NULL,
         `avg. distance` int DEFAULT NULL,
-        `% distance` float DEFAULT NULL
+        `% distance` float DEFAULT NULL,
+        `# detected versions` int DEFAULT NULL
         ''')
 
     rank = 1
@@ -147,8 +160,9 @@ def updateAll():
                 release_num = release_num_dict[libname]
                 perc_distance = round(avg_distance * 100 / release_num, 1)
 
-        conn3.update_otherwise_insert(RANK_SAVE_TABLE, ['star', 'starrank', 'avg. date', '# loaded', '%% loaded', 'avg. distance', '%% distance'],\
-            (star, rank, avgdate, freq_dict[libname], round(freq_dict[libname] * 100 / web_cnt, 1), avg_distance, perc_distance), 'library', libname)
+        conn3.update_otherwise_insert(RANK_SAVE_TABLE, ['star', 'starrank', 'avg. date', '# loaded', '%% loaded', 'avg. distance', '%% distance', '# detected versions'],\
+            (star, rank, avgdate, freq_dict[libname], round(freq_dict[libname] * 100 / web_cnt, 1), avg_distance, perc_distance, version_freq_dict.get(libname, 0)),\
+            'library', libname)
 
         if freq_dict[libname] > 0:
             fine_grain_num = 0

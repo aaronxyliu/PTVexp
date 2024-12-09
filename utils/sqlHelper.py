@@ -84,7 +84,8 @@ class ConnDatabase:
         sql = f"UPDATE `{table_name}` SET {fields_str} WHERE {condition};"
         self.cursor.execute(sql, values)
         self.connection.commit()
-    
+
+
     def update_otherwise_insert(self, table_name: str, fields: list, values: tuple, condition_field:str, condition_value:any):
         condition = f"`{condition_field}`='{condition_value}'"
         self.cursor.execute(f'''SELECT COUNT(*) FROM `{table_name}` WHERE {condition};''')

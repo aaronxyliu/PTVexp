@@ -1,6 +1,6 @@
 import ultraimport
 logger = ultraimport('__dir__/../utils/logger.py').getLogger()
-conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Releases')
+conn = ultraimport('__dir__/../utils/sqlHelper.py').ConnDatabase('Tags')
 import sys
 import json
 

@@ -40,6 +40,8 @@ def analyze():
 
     # Record variables
     no_match_dist = Dist()
+    newer_dist = Dist()
+    older_dist = Dist()
     lib_cnt = 0
     case1 = 0
     case2 = 0
@@ -142,6 +144,7 @@ def analyze():
                                     # This version is newer than all
                                     lib['date'] = str(entry2[1])
                                     lib['dist'] = distance
+                                    newer_dist.add(libname)
                                     case1 += 1
                                 else:
                                     # This version is between two entries
@@ -165,6 +168,7 @@ def analyze():
                                 # This version is older than all
                                 lib['date'] = str(res2[-1][1])
                                 lib['dist'] = len(res2)
+                                older_dist.add(libname)
                                 case4 += 1
                 
                 if len(libs) > 0:
@@ -179,7 +183,8 @@ def analyze():
     logger.info(f'# Exact match: {case3}')
     logger.info(f'# Oldest: {case4}')
     logger.info(f'# Versions no release date: {no_match_dist.size()}')
-
+    logger.info(newer_dist.freqDict("Newer than all"))
+    logger.info(older_dist.freqDict("Older than all"))
     logger.info(no_match_dist.freqDict("NO VERSION INFO IN DATABASE 'RELEASES'"))
    
 

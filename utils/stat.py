@@ -16,6 +16,13 @@ class Distribution:
             self.dict[item] = [value]
         else:
             self.dict[item].append(value)
+    
+    def add_distinct(self, item, value):
+        if item not in self.dict:
+            self.dict[item] = [value]
+        else:
+            if value not in self.dict[item]:
+                self.dict[item].append(value)
 
     def size(self):
         # The sum of frequency
@@ -150,8 +157,7 @@ class Distribution:
         for pair in show_dict.items():
             if head > 0 and i >= head:
                 break
-
-            if pair[1] <= thresY:
+            if thresY > 0 and pair[1] <= thresY:
                 # Filter out the data below the threshold
                 continue
             x_item = pair[0]
@@ -163,6 +169,7 @@ class Distribution:
             x_list.append(x_item)
             y_list.append(pair[1])
             i += 1
+        # print(y_list)
         
         if dateY:
             y_list = mdates.datestr2num(y_list)
@@ -170,7 +177,9 @@ class Distribution:
         fig, ax = plt.subplots(figsize=(6.2, 3))
 
         if hist:
-            plt.hist(y_list, bins=10, color="#F5CCCC", edgecolor="#C66667", range=(0, 10))
+            plt.hist(y_list, bins=10, color="#F5CCCC", edgecolor="#C66667")
+            if dateY:
+                ax.xaxis_date()
         else:
             plt.bar(x=range(len(x_list)), height=y_list, width=0.9,
                 color="#F5CCCC",
@@ -188,7 +197,7 @@ class Distribution:
             else:
                 plt.ylim(bottom=yrange[0], top=yrange[1])
 
-        if dateY:
+        if dateY and not hist:
             ax.yaxis_date()
 
         if title:
